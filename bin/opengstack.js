@@ -1,91 +1,37 @@
 #!/usr/bin/env node
 
 /**
- * OpenGStack CLI - Run skills directly from command line
- * Usage: opengstack <skill-name> [args...]
- * Example: opengstack ship
+ * OpenGStack CLI - Install and manage AI workflow skills
+ * Usage: opengstack [options]
+ * Example: opengstack --install
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const PKG_DIR = path.dirname(__dirname);
-const SKILLS_DIR = path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'skills');
+const SKILLS_SOURCE = path.join(PKG_DIR, 'skills');
 
-// Map of skill names to their directories
-const skillMap = {
-  'ship': 'ship',
-  'qa': 'qa',
-  'qa-only': 'qa-only',
-  'review': 'review',
-  'investigate': 'investigate',
-  'design-review': 'design-review',
-  'plan-ceo-review': 'plan-ceo-review',
-  'plan-eng-review': 'plan-eng-review',
-  'plan-design-review': 'plan-design-review',
-  'office-hours': 'office-hours',
-  'design-consultation': 'design-consultation',
-  'design-shotgun': 'design-shotgun',
-  'document-release': 'document-release',
-  'retro': 'retro',
-  'browse': 'browse',
-  'setup-browser-cookies': 'setup-browser-cookies',
-  'setup-deploy': 'setup-deploy',
-  'careful': 'careful',
-  'freeze': 'freeze',
-  'guard': 'guard',
-  'unfreeze': 'unfreeze',
-  'autoplan': 'autoplan',
-  'codex': 'codex',
-  'canary': 'canary',
-  'benchmark': 'benchmark',
-  'cso': 'cso',
-  'connect-chrome': 'connect-chrome',
-  'land-and-deploy': 'land-and-deploy',
-  'gstack-upgrade': 'gstack-upgrade'
-};
+function getSkillDescription(skillName) {
+  const skillPath = path.join(SKILLS_SOURCE, skillName, 'SKILL.md');
+  if (!fs.existsSync(skillPath)) return '';
+  
+  const content = fs.readFileSync(skillPath, 'utf8');
+  const match = content.match(/description:\s*\|?\s*([^\n]+)/);
+  return match ? match[1].trim() : '';
+}
 
 function showHelp() {
   console.log(`
 OpenGStack - AI Engineering Workflow Skills
 
-Usage: opengstack <command> [options]
-
-Commands:
-  ship              Ship workflow: test, review, push, PR
-  qa                Open browser, find bugs, fix, verify
-  qa-only           QA report only — no code changes
-  review            Pre-landing PR review
-  investigate       Root-cause debugging
-  design-review     Design audit + fix loop
-  plan-ceo-review   CEO-level strategic review
-  plan-eng-review   Lock architecture & edge cases
-  plan-design-review Rate design decisions 0-10
-  office-hours      Brainstorm before building
-  design-consultation Build a design system from scratch
-  design-shotgun    Generate multiple AI design variants
-  document-release  Update docs post-ship
-  retro             Weekly engineering retrospective
-  browse            Headless browser (real Chromium)
-  setup-browser-cookies Import cookies for auth testing
-  setup-deploy      Configure deployment settings
-  careful           Warn before destructive ops
-  freeze            Lock edits to one directory
-  guard             Activate careful + freeze
-  unfreeze          Remove directory restrictions
-  autoplan          Run all reviews auto-decisioned
-  codex             OpenAI Codex CLI wrapper
-  canary            Post-deploy monitoring
-  benchmark         Performance regression detection
-  cso               Security audit
-  connect-chrome    Launch Chrome with Side Panel
-  land-and-deploy   Merge PR, deploy, verify health
-  gstack-upgrade    Upgrade gstack to latest version
+Usage: opengstack [options]
 
 Options:
   -h, --help        Show this help message
   -l, --list        List all available skills
-  -i, --install     Install skills to ~/.claude/skills/
+  -i, --install     Install skills to ~/.config/opencode/skills/,
+                    ~/.claude/skills/, and ~/.agents/skills/
 
 In opencode/Claude, use /slash commands:
   /ship, /qa, /review, etc.
@@ -94,18 +40,24 @@ In opencode/Claude, use /slash commands:
 
 function listSkills() {
   console.log('\nAvailable skills:\n');
-  Object.entries(skillMap).forEach(([cmd, dir]) => {
-    const skillPath = path.join(SKILLS_DIR, dir, 'SKILL.md');
+  
+  if (!fs.existsSync(SKILLS_SOURCE)) {
+    console.error('❌ No skills/ folder found');
+    process.exit(1);
+  }
+  
+  fs.readdirSync(SKILLS_SOURCE).forEach(skillName => {
+    const skillPath = path.join(SKILLS_SOURCE, skillName, 'SKILL.md');
+    if (!fs.existsSync(skillPath)) return;
+    
+    const content = fs.readFileSync(skillPath, 'utf8');
+    const match = content.match(/description:\s*\|?\s*([^\n]+)/);
     let description = '';
-    if (fs.existsSync(skillPath)) {
-      const content = fs.readFileSync(skillPath, 'utf8');
-      const match = content.match(/description:\s*\|?\s*([^\n]+)/);
-      if (match) {
-        description = match[1].trim().substring(0, 60);
-        if (description.length === 60) description += '...';
-      }
+    if (match) {
+      description = match[1].trim().substring(0, 60);
+      if (description.length === 60) description += '...';
     }
-    console.log(`  ${cmd.padEnd(20)} ${description}`);
+    console.log(`  ${skillName.padEnd(20)} ${description}`);
   });
   console.log('');
 }
@@ -134,18 +86,11 @@ function main() {
     process.exit(0);
   }
 
-  const skillDir = skillMap[command];
-  if (!skillDir) {
+  // Check if skill exists in package
+  const skillPath = path.join(SKILLS_SOURCE, command, 'SKILL.md');
+  if (!fs.existsSync(skillPath)) {
     console.error(`Unknown command: ${command}`);
     console.error('Run "opengstack --help" for available commands');
-    process.exit(1);
-  }
-
-  // Check if skill is installed
-  const skillPath = path.join(SKILLS_DIR, skillDir, 'SKILL.md');
-  if (!fs.existsSync(skillPath)) {
-    console.error(`Skill "${command}" not installed.`);
-    console.error('Run: opengstack --install');
     process.exit(1);
   }
 

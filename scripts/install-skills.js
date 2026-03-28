@@ -1,74 +1,45 @@
 #!/usr/bin/env node
-
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const SKILLS_DIRS = [
-  path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'skills'),
-  path.join(process.env.HOME || process.env.USERPROFILE, '.config', 'opencode', 'skills')
-];
-const PKG_DIR = path.dirname(__dirname);
-
-// List of skill directories
-const skills = [
-  'autoplan', 'benchmark', 'browse', 'canary', 'careful', 'codex',
-  'connect-chrome', 'cso', 'design-consultation', 'design-review',
-  'design-shotgun', 'document-release', 'freeze', 'gstack-upgrade',
-  'guard', 'investigate', 'land-and-deploy', 'office-hours',
-  'plan-ceo-review', 'plan-design-review', 'plan-eng-review',
-  'qa', 'qa-only', 'retro', 'review', 'setup-browser-cookies',
-  'setup-deploy', 'ship', 'unfreeze'
+const SKILLS_SOURCE = path.join(__dirname, '..', 'skills');
+const TARGET_DIRS = [
+  path.join(os.homedir(), '.config', 'opencode', 'skills'),     // OpenCode native
+  path.join(os.homedir(), '.claude', 'skills'),                 // Claude compat
+  path.join(os.homedir(), '.agents', 'skills')                  // other agents
 ];
 
-console.log('🔗 Installing OpenGStack skills...');
-
-// Install to all skill directories
-for (const SKILLS_DIR of SKILLS_DIRS) {
-  console.log(`\n📁 Installing to ${SKILLS_DIR}...`);
-  
-  // Ensure skills directory exists
-  if (!fs.existsSync(SKILLS_DIR)) {
-    fs.mkdirSync(SKILLS_DIR, { recursive: true });
+function copySkills() {
+  if (!fs.existsSync(SKILLS_SOURCE)) {
+    console.error('❌ No skills/ folder found in package');
+    process.exit(1);
   }
 
-  // Create symlinks for each skill
-  let installed = 0;
-  let skipped = 0;
-
-  for (const skill of skills) {
-    const srcPath = path.join(PKG_DIR, skill);
-    const destPath = path.join(SKILLS_DIR, skill);
-
-    if (!fs.existsSync(srcPath)) {
-      console.warn(`⚠️  Skill not found: ${skill}`);
-      skipped++;
-      continue;
+  TARGET_DIRS.forEach(target => {
+    if (!fs.existsSync(target)) {
+      fs.mkdirSync(target, { recursive: true });
     }
 
-    try {
-      // Remove existing if it's a symlink
-      if (fs.existsSync(destPath)) {
-        const stat = fs.lstatSync(destPath);
-        if (stat.isSymbolicLink()) {
-          fs.unlinkSync(destPath);
-        } else {
-          console.log(`⏭️  Skipping ${skill} (already exists)`);
-          skipped++;
-          continue;
-        }
+    fs.readdirSync(SKILLS_SOURCE).forEach(skillName => {
+      const src = path.join(SKILLS_SOURCE, skillName);
+      const dest = path.join(target, skillName);
+
+      // Skip if not a directory
+      if (!fs.statSync(src).isDirectory()) return;
+
+      if (fs.existsSync(dest)) {
+        console.log(`⚠️  Skill ${skillName} already exists — skipping`);
+        return;
       }
 
-      // Create symlink
-      fs.symlinkSync(srcPath, destPath, 'dir');
-      console.log(`✓ ${skill}`);
-      installed++;
-    } catch (err) {
-      console.error(`✗ ${skill}: ${err.message}`);
-      skipped++;
-    }
-  }
+      fs.cpSync(src, dest, { recursive: true, force: true });
+      console.log(`✅ Installed skill: /${skillName}`);
+    });
+  });
 
-  console.log(`\n✅ Installed ${installed} skills, skipped ${skipped}`);
+  console.log('\n🎉 Skills installed! Restart OpenCode (just quit and restart the TUI).');
+  console.log('Now just type /qa directly — no /skills menu needed.');
 }
 
-console.log('\n🎯 Skills are now available in opencode/Claude');
+copySkills();
