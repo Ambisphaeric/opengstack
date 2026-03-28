@@ -76,11 +76,12 @@ jobs:
 
       - name: Commit filtered changes
         if: steps.check.outputs.updating == 'true'
+        id: commit
         env:
           AI_KEY: ${{ secrets.AI_KEY }}
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_REPO: ${{ github.repository }}
-        GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.$GITHUB_SERVER_URL"
