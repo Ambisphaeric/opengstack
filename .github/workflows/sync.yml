@@ -21,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Need full history for merge
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
@@ -72,6 +72,14 @@ jobs:
             echo "updating=true" >> $GITHUB_OUTPUT
             echo "Updates available from upstream"
           fi
+
+      - name: Create sync branch
+        if: steps.check.outputs.updating == 'true'
+        run: |
+          BRANCH_NAME="sync/upstream-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        id: branch
 
       - name: Intelligent merge from upstream
         if: steps.check.outputs.updating == 'true'
@@ -150,34 +158,29 @@ jobs:
 
       - name: Commit filtered changes
         if: steps.check.outputs.updating == 'true'
-        id: commit
         run: |
           git add -A
           git diff --cached --quiet || git commit -m "chore: apply opengstack filters"
-          
-          # Create version tag
-          UPSTREAM_VERSION="${{ steps.upstream.outputs.version }}"
-          if [ -n "$UPSTREAM_VERSION" ] && [ "$UPSTREAM_VERSION" != "unknown" ]; then
-            TAG="v${UPSTREAM_VERSION}.0"
-            git tag -a "$TAG" -m "opengstack v${UPSTREAM_VERSION}.0 (filtered from garrytan/gstack)"
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-          fi
 
-      - name: Push changes
+      - name: Push sync branch
         if: steps.check.outputs.updating == 'true'
         run: |
-          git push origin main --tags
+          git push origin ${{ steps.branch.outputs.branch_name }}
 
-      - name: Create sync PR
+      - name: Create Pull Request
         if: steps.check.outputs.updating == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          branch: sync/upstream
-          title: "Sync from garrytan/gstack"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.branch.outputs.branch_name }}
+          base: main
+          title: "chore: sync from garrytan/gstack v${{ steps.upstream.outputs.version }}"
           body: |
             ## Sync Report
             
             Merged latest changes from [garrytan/gstack](https://github.com/${{ env.UPSTREAM_REPO }}).
+            
+            **Upstream version:** v${{ steps.upstream.outputs.version }}
             
             Applied filters:
             - Removed telemetry/analytics
@@ -185,5 +188,14 @@ jobs:
             - Removed garrytan-specific content
             - Merged using Fireworks AI (FIREWORKS_API_KEY)
             
-            Committed by: Ambisphaeric
-          commit-message: "chore: sync from garrytan/gstack"
+            **Note:** Merge this PR to complete the sync. Do not push directly to main.
+          draft: false
+
+      - name: Create version tag (after PR merge)
+        if: steps.check.outputs.updating == 'true'
+        run: |
+          UPSTREAM_VERSION="${{ steps.upstream.outputs.version }}"
+          if [ -n "$UPSTREAM_VERSION" ] && [ "$UPSTREAM_VERSION" != "unknown" ]; then
+            TAG="v${UPSTREAM_VERSION}.0"
+            echo "::notice::After merging the PR, create tag: $TAG"
+          fi
