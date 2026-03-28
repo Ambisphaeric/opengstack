@@ -1,0 +1,119 @@
+name: Sync from upstream
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6am UTC
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      force:
+        description: 'Force sync even if no changes'
+        required: false
+        default: 'false'
+
+env:
+  UPSTREAM_REPO: "garrytan/gstack"
+  FILTER_SCRIPT: "scripts/filter_skills.py"
+  CLEANUP_SCRIPT: "scripts/cleanup.py"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git
+          git fetch upstream main --tags 2>/dev/null || git fetch upstream master --tags 2>/dev/null || true
+
+      - name: Get upstream version
+        id: upstream
+        run: |
+          UPSTREAM_BRANCH=$(git rev-parse --verify upstream/main 2>/dev/null || git rev-parse --verify upstream/master 2>/dev/null || echo "")
+          echo "sha=$UPSTREAM_BRANCH" >> $GITHUB_OUTPUT
+          if [ -n "$UPSTREAM_BRANCH" ]; then
+            UPSTREAM_VERSION=$(git ls-remote upstream refs/tags/v* 2>/dev/null | head -1 | sed 's/.*v//' || echo "unknown")
+            echo "version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for updates
+        id: check
+        run: |
+          CURRENT=$(git rev-parse HEAD 2>/dev/null || echo "")
+          UPSTREAM=${{ steps.upstream.outputs.sha }}
+          
+          if [ -z "$UPSTREAM" ]; then
+            echo "updating=false" >> $GITHUB_OUTPUT
+            echo "No upstream found"
+            exit 0
+          fi
+          
+          if [ "$CURRENT" = "$UPSTREAM" ]; then
+            echo "updating=false" >> $GITHUB_OUTPUT
+            echo "Already up to date with upstream"
+          else
+            echo "updating=true" >> $GITHUB_OUTPUT
+            echo "Updates available from upstream"
+          fi
+
+      - name: Sync from upstream
+        if: steps.check.outputs.updating == 'true'
+        run: |
+          git merge upstream/main --no-edit -m "chore: merge from ${{ env.UPSTREAM_REPO }}"
+
+      - name: Apply opengstack filters
+        if: steps.check.outputs.updating == 'true'
+        run: |
+          python3 ${{ env.FILTER_SCRIPT }} .
+          python3 ${{ env.CLEANUP_SCRIPT }} .
+
+      - name: Commit filtered changes
+        if: steps.check.outputs.updating == 'true'
+        run: |
+          git config user.name "opengstack-sync"
+          git config user.email "sync@opengstack.local"
+          
+          git add -A
+          git diff --cached --quiet || git commit -m "chore: apply opengstack filters"
+          
+          # Create version tag
+          UPSTREAM_VERSION="${{ steps.upstream.outputs.version }}"
+          if [ -n "$UPSTREAM_VERSION" ] && [ "$UPSTREAM_VERSION" != "unknown" ]; then
+            TAG="v${UPSTREAM_VERSION}-opengstack"
+            git tag -a "$TAG" -m "opengstack v${UPSTREAM_VERSION} (filtered from garrytan/gstack)"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push changes
+        if: steps.check.outputs.updating == 'true'
+        run: |
+          git push origin main --tags
+
+      - name: Create sync PR
+        if: steps.check.outputs.updating == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: sync/upstream
+          title: "Sync from garrytan/gstack"
+          body: |
+            ## Sync Report
+            
+            Merged latest changes from [garrytan/gstack](https://github.com/${{ env.UPSTREAM_REPO }}).
+            
+            Applied filters:
+            - Removed telemetry/analytics
+            - Removed YC references
+            - Removed garrytan-specific content
+            
+            @ambisphaeric/opengstack-sync
+          commit-message: "chore: sync from garrytan/gstack"
