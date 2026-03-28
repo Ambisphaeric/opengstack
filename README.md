@@ -1,6 +1,6 @@
 # OpenGStack
 
-> **npm:** `npm install opengstack`
+> **npm:** `npm install github:Ambisphaeric/opengstack`
 
 Open source engineering workflow skills for AI coding assistants. No telemetry, no tracking.
 
@@ -45,7 +45,7 @@ Skills that give AI agents structured roles for software development. Each skill
 ### npm (recommended)
 
 ```bash
-npm install opengstack
+npm install github:Ambisphaeric/opengstack
 ```
 
 Then copy skills to your AI assistant's skills directory:
