@@ -84,6 +84,49 @@ def filter_skill_content(content: str) -> str:
     # Remove "ref=gstack" from any URLs
     content = re.sub(r"\?ref=gstack", "", content)
 
+    # Remove standalone gstack references (when referring to product/skill system)
+    content = re.sub(r"\bgstack skills?\b", "skills", content, flags=re.IGNORECASE)
+    content = re.sub(r"\bgstack\b", "OpenGStack", content, flags=re.IGNORECASE)
+
+    # Remove .gstack/ directory references (telemetry/analytics paths)
+    content = re.sub(r"~?/?\.gstack/[^\s\n`\"']*", "", content)
+    content = re.sub(r"mkdir -p[^\n]*\.gstack[^\n]*", "", content)
+    content = re.sub(r"touch[^\n]*\.gstack[^\n]*", "", content)
+    content = re.sub(r"echo[^\n]*\.gstack[^\n]*", "", content)
+
+    # Remove gstack-config binary references
+    content = re.sub(
+        r"~/.claude/skills/gstack/bin/gstack-config[^\s\n`\"']*", "", content
+    )
+    content = re.sub(
+        r"~/.claude/skills/opengstack/bin/gstack-config[^\s\n`\"']*", "", content
+    )
+
+    # Remove gstack-upgrade references
+    content = re.sub(
+        r"~/.claude/skills/gstack/gstack-upgrade/[^\s\n`\"']*", "", content
+    )
+    content = re.sub(
+        r"~/.claude/skills/opengstack/gstack-upgrade/[^\s\n`\"']*", "", content
+    )
+
+    # Remove gstack binary paths
+    content = re.sub(r"~/.claude/skills/gstack/bin/[^\s\n`\"']*", "", content)
+    content = re.sub(r"\.claude/skills/gstack/bin/[^\s\n`\"']*", "", content)
+
+    # Clean up broken partial text
+    content = re.sub(
+        r"gstack follows the \*\*[^*]*\*\* principle.*?Read more:",
+        "",
+        content,
+        flags=re.DOTALL,
+    )
+    content = re.sub(r"Boil the (Lake|Ocean)[^\n]*", "", content)
+    content = re.sub(r"https?://garryslist\.org[^\s]*", "", content)
+
+    # Remove lines that only contain empty code fences after cleanup
+    content = re.sub(r"\n```\s*\n(?=\n|#)", "\n", content)
+
     # Clean up empty code blocks and whitespace
     content = re.sub(r"\n{4,}", "\n\n", content)
     content = re.sub(r"```\n\n```", "", content)
