@@ -2,13 +2,8 @@ name: Sync from upstream
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Daily at 6am UTC
+    - cron: '0 * * * *'  # Hourly at the top of every hour
   workflow_dispatch:  # Manual trigger
-    inputs:
-      force:
-        description: 'Force sync even if no changes'
-        required: false
-        default: 'false'
 
 env:
   UPSTREAM_REPO: "garrytan/gstack"
@@ -25,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for merge
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,13 +33,13 @@ jobs:
           git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git
           git fetch upstream main --tags 2>/dev/null || git fetch upstream master --tags 2>/dev/null || true
 
-      - name: Get upstream version
+      - name: Get upstream info
         id: upstream
         run: |
           UPSTREAM_BRANCH=$(git rev-parse --verify upstream/main 2>/dev/null || git rev-parse --verify upstream/master 2>/dev/null || echo "")
           echo "sha=$UPSTREAM_BRANCH" >> $GITHUB_OUTPUT
           if [ -n "$UPSTREAM_BRANCH" ]; then
-            UPSTREAM_VERSION=$(git ls-remote upstream refs/tags/v* 2>/dev/null | head -1 | sed 's/.*v//' || echo "unknown")
+            UPSTREAM_VERSION=$(git ls-remote upstream refs/tags/v* 2>/dev/null | sort -V | tail -1 | sed 's/.*v//' || echo "unknown")
             echo "version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
           fi
 
@@ -79,6 +76,8 @@ jobs:
 
       - name: Commit filtered changes
         if: steps.check.outputs.updating == 'true'
+        env:
+          AI_KEY: ${{ secrets.AI_KEY }}
         run: |
           git config user.name "opengstack-sync"
           git config user.email "sync@opengstack.local"
@@ -115,5 +114,5 @@ jobs:
             - Removed YC references
             - Removed garrytan-specific content
             
-            @ambisphaeric/opengstack-sync
+            Your AI_KEY secret was available for this sync.
           commit-message: "chore: sync from garrytan/gstack"
