@@ -1,6 +1,8 @@
 # OpenGStack
 
-Open source engineering workflow skills for AI coding assistants.
+> **npm:** `npm install opengstack`
+
+Open source engineering workflow skills for AI coding assistants. No telemetry, no tracking.
 
 Forked from [garrytan/gstack](https://github.com/garrytan/gstack) with telemetry and YC references removed.
 
@@ -40,14 +42,25 @@ Skills that give AI agents structured roles for software development. Each skill
 
 ## Installation
 
-### For Claude Code / OpenCode
+### npm (recommended)
 
 ```bash
-# Clone to your skills directory
+npm install opengstack
+```
+
+Then copy skills to your AI assistant's skills directory:
+
+```bash
+cp -r node_modules/opengstack/* ~/.claude/skills/opengstack/
+```
+
+### Git clone
+
+```bash
 git clone https://github.com/Ambisphaeric/opengstack.git ~/.claude/skills/opengstack
 ```
 
-### Browse Setup (optional but recommended)
+### Browse Setup (optional)
 
 ```bash
 cd ~/.claude/skills/opengstack/browse
@@ -62,7 +75,7 @@ This fork removes all telemetry, analytics, and tracking from the original gstac
 
 ## Syncing from Upstream
 
-This repo auto-syncs daily from `garrytan/gstack` via GitHub Actions. Filters are applied to remove telemetry and YC references.
+This repo auto-syncs hourly from `garrytan/gstack` via GitHub Actions. Filters are applied to remove telemetry and YC references.
 
 To sync manually:
 
