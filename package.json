@@ -1,0 +1,43 @@
+{
+  "name": "opengstack",
+  "version": "0.13.4",
+  "private": false,
+  "description": "AI Engineering Workflow - SKILL.md files that give AI agents structured roles for software development. Forked from gstack but scrubbed clean of all the YC/Garry Tan cruft and telemetry.",
+  "keywords": [
+    "ai-agents",
+    "claude",
+    "workflow",
+    "skills",
+    "agent-instructions",
+    "gstack",
+    "opengstack"
+  ],
+  "homepage": "https://github.com/Ambisphaeric/opengstack#readme",
+  "bugs": {
+    "url": "https://github.com/Ambisphaeric/opengstack/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ambisphaeric/opengstack.git"
+  },
+  "license": "MIT",
+  "author": "Ambisphaeric",
+  "type": "commonjs",
+  "main": "SKILL.md",
+  "directories": {
+    "doc": "docs"
+  },
+  "files": [
+    "SKILL.md",
+    "CLAUDE.md",
+    "AGENTS.md",
+    "README.md",
+    "**/SKILL.md",
+    "**/SKILL.md.tmpl",
+    "scripts/",
+    "docs/"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
