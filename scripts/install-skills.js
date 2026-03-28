@@ -5,7 +5,7 @@ const path = require('path');
 
 const SKILLS_DIRS = [
   path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'skills'),
-  path.join(process.env.HOME || process.env.USERPROFILE, '.opencode')
+  path.join(process.env.HOME || process.env.USERPROFILE, '.config', 'opencode', 'skills')
 ];
 const PKG_DIR = path.dirname(__dirname);
 
