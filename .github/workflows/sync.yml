@@ -78,9 +78,12 @@ jobs:
         if: steps.check.outputs.updating == 'true'
         env:
           AI_KEY: ${{ secrets.AI_KEY }}
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_REPO: ${{ github.repository }}
+        GITHUB_SERVER_URL: ${{ github.server_url }}
         run: |
-          git config user.name "opengstack-sync"
-          git config user.email "sync@opengstack.local"
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.$GITHUB_SERVER_URL"
           
           git add -A
           git diff --cached --quiet || git commit -m "chore: apply opengstack filters"
