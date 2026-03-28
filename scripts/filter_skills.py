@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-opengstack filter script
-Removes telemetry, YC references, garrytan slop from gstack skills
+opengstack filter script - NUKE MODE
+Removes ALL telemetry, YC references, Garry Tan content, and gstack branding
 """
 
 import re
@@ -10,138 +10,119 @@ from pathlib import Path
 
 
 def filter_skill_content(content: str) -> str:
-    """Apply all filters to skill content"""
+    """NUKE all gstack slop from skills"""
 
-    # Remove telemetry preamble block (from _UPD to closing brace)
-    preamble_pattern = r"```bash\n_UPD=.*?(?=\n```|\n\n[A-Z#])"
-    content = re.sub(preamble_pattern, "", content, flags=re.DOTALL)
+    # STEP 1: Remove entire telemetry preamble blocks
+    # Match from ```bash to next ```, containing telemetry variables
+    content = re.sub(r"```bash\s*\n_UPD=.*?```\s*\n", "", content, flags=re.DOTALL)
 
-    # Remove LAKE_INTRO / Completeness Principle section
-    lake_pattern = r"If `LAKE_INTRO` is `no`:.*?`touch ~\/\.gstack\/\.completeness-intro-seen`\n```\n.*?```\n"
-    content = re.sub(lake_pattern, "", content, flags=re.DOTALL)
-
-    # Remove telemetry prompts section
-    tel_pattern = (
-        r"If `TEL_PROMPTED` is `no` AND.*?(?=If `PROACTIVE_PROMPTED`|## Voice)"
-    )
-    content = re.sub(tel_pattern, "", content, flags=re.DOTALL)
-
-    # Remove PROACTIVE_PROMPTED section
-    proactive_pattern = r"If `PROACTIVE_PROMPTED` is `no` AND.*?`touch ~\/\.gstack\/\.proactive-prompted`\n```\n"
-    content = re.sub(proactive_pattern, "", content, flags=re.DOTALL)
-
-    # Remove contributor mode block
-    contrib_pattern = r"## Contributor Mode.*?(?=## Voice|## Completion)"
-    content = re.sub(contrib_pattern, "", content, flags=re.DOTALL)
-
-    # Remove telemetry trailer block
-    tel_trailer_pattern = (
-        r"## Telemetry \(run last\).*?```bash\n.*?gstack-telemetry-log.*?```\n"
-    )
-    content = re.sub(tel_trailer_pattern, "", content, flags=re.DOTALL)
-
-    # Remove update check references
-    content = re.sub(r"UPGRADE_AVAILABLE.*?(?=\n|$)", "", content)
-    content = re.sub(r"JUST_UPGRADED.*?(?=\n|$)", "", content)
-    content = re.sub(r"gstack-update-check", "echo", content)
-
-    # Remove gstack-config references (telemetry/proactive settings)
+    # Remove any remaining bash blocks with .gstack/ references
     content = re.sub(
-        r"~/.claude/skills/gstack/", "~/.claude/skills/opengstack/", content
+        r"```bash\s*\n.*?\.gstack/.*?(?=```)", "", content, flags=re.DOTALL
     )
 
-    # Remove YC slop - personal notes from Garry Tan
-    garry_note_pattern = (
-        r"> A personal note from me, Garry Tan, the creator of GStack:.*?(?=\n\n|\n>)"
-    )
-    content = re.sub(garry_note_pattern, "", content, flags=re.DOTALL)
-
-    # Remove YC apply links with ref tracking
-    content = re.sub(r"ycombinator\.com/apply\?ref=gstack.*", "", content)
-
-    # Remove YC partner energy references
-    content = re.sub(r"YC partner energy for strategy.*", "", content)
-
-    # Remove "exactly the kind of builders Garry respects" type phrases
-    founder_phrase = r"people with that kind of taste and drive are exactly the kind of builders.*?consider applying to YC.*"
-    content = re.sub(founder_phrase, "", content, flags=re.DOTALL)
-
-    # Remove garryslist references
-    content = re.sub(r"https?://garryslist\.org[^\s]*", "", content)
-    content = re.sub(r"Boil the (Lake|Ocean).*", "", content)
-
-    # Remove YC from office-hours description
-    content = re.sub(r"YC Office Hours", "Office Hours", content)
-
-    # Remove Garry Tan references
-    content = re.sub(r"shaped by Garry Tan's.*", "", content)
-    content = re.sub(r"Garry Tan", "OpenGStack", content)
-    content = re.sub(r"Gar[r]?y.*Tan", "", content)
-
-    # Remove GStack branding where it's the product name
-    content = re.sub(r"\bGStack\b", "OpenGStack", content)
-
-    # Remove "ref=gstack" from any URLs
-    content = re.sub(r"\?ref=gstack", "", content)
-
-    # Remove standalone gstack references (when referring to product/skill system)
-    content = re.sub(r"\bgstack skills?\b", "skills", content, flags=re.IGNORECASE)
-    content = re.sub(r"\bgstack\b", "OpenGStack", content, flags=re.IGNORECASE)
-
-    # Remove .gstack/ directory references (telemetry/analytics paths)
-    content = re.sub(r"~?/?\.gstack/[^\s\n`\"']*", "", content)
-    content = re.sub(r"mkdir -p[^\n]*\.gstack[^\n]*", "", content)
-    content = re.sub(r"touch[^\n]*\.gstack[^\n]*", "", content)
-    content = re.sub(r"echo[^\n]*\.gstack[^\n]*", "", content)
-
-    # Remove gstack-config binary references
+    # STEP 2: Remove entire sections about telemetry/config
     content = re.sub(
-        r"~/.claude/skills/gstack/bin/gstack-config[^\s\n`\"']*", "", content
-    )
-    content = re.sub(
-        r"~/.claude/skills/opengstack/bin/gstack-config[^\s\n`\"']*", "", content
-    )
-
-    # Remove gstack-upgrade references
-    content = re.sub(
-        r"~/.claude/skills/gstack/gstack-upgrade/[^\s\n`\"']*", "", content
-    )
-    content = re.sub(
-        r"~/.claude/skills/opengstack/gstack-upgrade/[^\s\n`\"']*", "", content
-    )
-
-    # Remove gstack binary paths
-    content = re.sub(r"~/.claude/skills/gstack/bin/[^\s\n`\"']*", "", content)
-    content = re.sub(r"\.claude/skills/gstack/bin/[^\s\n`\"']*", "", content)
-
-    # Clean up broken partial text
-    content = re.sub(
-        r"gstack follows the \*\*[^*]*\*\* principle.*?Read more:",
+        r"If `TEL_PROMPTED` is.*?touch ~/.gstack/\.telemetry-prompted.*?```\s*\n?",
         "",
         content,
         flags=re.DOTALL,
     )
-    content = re.sub(r"Boil the (Lake|Ocean)[^\n]*", "", content)
+
+    content = re.sub(
+        r"If `PROACTIVE_PROMPTED` is.*?touch ~/.gstack/\.proactive-prompted.*?```\s*\n?",
+        "",
+        content,
+        flags=re.DOTALL,
+    )
+
+    content = re.sub(
+        r"If `LAKE_INTRO` is.*?touch ~/.gstack/\.completeness-intro-seen.*?```\s*\n?",
+        "",
+        content,
+        flags=re.DOTALL,
+    )
+
+    # STEP 3: Remove ## Contributor Mode section
+    content = re.sub(
+        r"## Contributor Mode.*?## (Voice|Telemetry|Completion)",
+        r"## \1",
+        content,
+        flags=re.DOTALL,
+    )
+
+    # STEP 4: Remove ## Telemetry section entirely
+    content = re.sub(r"## Telemetry.*?```.*?```\s*\n", "", content, flags=re.DOTALL)
+
+    # STEP 5: NUKE all gstack binary references
+    content = re.sub(r"`?~/.claude/skills/gstack/bin/[^\s`]+`?", "", content)
+
+    # STEP 6: Replace gstack paths with opengstack
+    content = re.sub(
+        r"~/.claude/skills/gstack/", "~/.claude/skills/opengstack/", content
+    )
+
+    # STEP 7: Remove all .gstack/ directory references
+    content = re.sub(r"~?/?\.gstack/[^\s`\n]*", "", content)
+
+    # STEP 8: Remove mkdir/touch commands for .gstack
+    content = re.sub(r"mkdir -p[^\n]*\.gstack[^\n]*\n?", "", content)
+    content = re.sub(r"touch[^\n]*\.gstack[^\n]*\n?", "", content)
+
+    # STEP 9: NUKE Garry Tan completely
+    content = re.sub(
+        r"> A personal note from me, Garry Tan.*?(?=\n\n|## )",
+        "",
+        content,
+        flags=re.DOTALL,
+    )
+    content = re.sub(r"shaped by Garry Tan\'s[^.]*\.", "", content)
+    content = re.sub(r"Garry Tan", "", content)
+    content = re.sub(r"YC partner energy for strategy[^.]*\.", "", content)
+
+    # STEP 10: NUKE YC references
+    content = re.sub(r"YC Office Hours", "Office Hours", content)
+    content = re.sub(r"ycombinator\.com/apply\?ref=[^\s]*", "", content)
+    content = re.sub(r"consider applying to YC[^.]*\.", "", content)
+
+    # STEP 11: NUKE garryslist
     content = re.sub(r"https?://garryslist\.org[^\s]*", "", content)
+    content = re.sub(r"Boil the (Lake|Ocean)[^.]*\.?", "", content)
 
-    # Remove lines that only contain empty code fences after cleanup
-    content = re.sub(r"\n```\s*\n(?=\n|#)", "\n", content)
+    # STEP 12: Replace GStack with OpenGStack (product name)
+    content = re.sub(r"\bGStack\b", "OpenGStack", content)
 
-    # Clean up empty code blocks and whitespace
-    content = re.sub(r"\n{4,}", "\n\n", content)
-    content = re.sub(r"```\n\n```", "", content)
+    # STEP 13: Remove standalone gstack references in prose
+    # But keep it in contexts like "skill system" or "framework"
+    content = re.sub(r"\bgstack skills?\b", "skills", content, flags=re.IGNORECASE)
+    content = re.sub(
+        r"\bgstack[- ]?telemetry\b", "telemetry", content, flags=re.IGNORECASE
+    )
 
-    # Remove orphaned backticks
-    content = re.sub(r"^```\n*$", "", content, flags=re.MULTILINE)
+    # STEP 14: Remove ref=gstack from URLs
+    content = re.sub(r"\?ref=gstack", "", content)
 
-    # Clean leading/trailing whitespace per line
-    lines = [line.rstrip() for line in content.split("\n")]
-    content = "\n".join(lines)
+    # STEP 15: Remove broken sentence fragments
+    content = re.sub(
+        r"gstack follows the \*\*[^*]+\*\* principle.*?Read more:",
+        "",
+        content,
+        flags=re.DOTALL,
+    )
 
-    # Remove trailing newlines
-    content = content.rstrip("\n") + "\n"
+    # STEP 16: Fix "You are GStack" -> "You are using OpenGStack"
+    content = re.sub(r"You are GStack,", "You are using OpenGStack,", content)
+    content = re.sub(r"You are OpenGStack,", "You are using OpenGStack,", content)
 
-    return content
+    # STEP 17: Remove orphaned code fences and clean up
+    content = re.sub(r"\n{3,}", "\n\n", content)
+    content = re.sub(r"```\s*\n\s*```", "", content)
+    content = re.sub(r"^\s*```\s*$", "", content, flags=re.MULTILINE)
+
+    # STEP 18: Clean empty lines at start/end
+    content = content.strip()
+
+    return content + "\n"
 
 
 def filter_file(filepath: Path) -> bool:
@@ -163,20 +144,20 @@ def main():
         Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent
     )
 
-    print(f"Filtering skills in: {skills_dir}")
+    print(f"NUKING gstack slop from: {skills_dir}")
 
     modified = 0
     for skill_file in skills_dir.rglob("SKILL.md"):
         if filter_file(skill_file):
-            print(f"  Filtered: {skill_file.relative_to(skills_dir)}")
+            print(f"  NUKED: {skill_file.relative_to(skills_dir)}")
             modified += 1
 
     for tmpl_file in skills_dir.rglob("SKILL.md.tmpl"):
         if filter_file(tmpl_file):
-            print(f"  Filtered: {tmpl_file.relative_to(skills_dir)}")
+            print(f"  NUKED: {tmpl_file.relative_to(skills_dir)}")
             modified += 1
 
-    print(f"\nDone! Modified {modified} files.")
+    print(f"\nDone! Cleansed {modified} files of gstack slop.")
 
 
 if __name__ == "__main__":
