@@ -67,7 +67,6 @@ mkdir -p "$STATE_DIR"
 echo "$FREEZE_DIR" > "$STATE_DIR/freeze-dir.txt"
 echo "Freeze boundary set: $FREEZE_DIR"
 
-Tell the user:
 - "**Guard mode active.** Two protections are now running:"
 - "1. **Destructive command warnings** — rm -rf, DROP TABLE, force-push, etc. will warn before executing (you can override)"
 - "2. **Edit boundary** — file edits restricted to `<path>/`. Edits outside this directory are blocked."

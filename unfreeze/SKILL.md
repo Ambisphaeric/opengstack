@@ -33,6 +33,5 @@ else
   echo "No freeze boundary was set."
 fi
 
-Tell the user the result. Note that `/freeze` hooks are still registered for the
 session — they will just allow everything since no state file exists. To re-freeze,
 run `/freeze` again.

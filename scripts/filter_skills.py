@@ -73,6 +73,17 @@ def filter_skill_content(content: str) -> str:
     # Remove YC from office-hours description
     content = re.sub(r"YC Office Hours", "Office Hours", content)
 
+    # Remove Garry Tan references
+    content = re.sub(r"shaped by Garry Tan's.*", "", content)
+    content = re.sub(r"Garry Tan", "OpenGStack", content)
+    content = re.sub(r"Gar[r]?y.*Tan", "", content)
+
+    # Remove GStack branding where it's the product name
+    content = re.sub(r"\bGStack\b", "OpenGStack", content)
+
+    # Remove "ref=gstack" from any URLs
+    content = re.sub(r"\?ref=gstack", "", content)
+
     # Clean up empty code blocks and whitespace
     content = re.sub(r"\n{4,}", "\n\n", content)
     content = re.sub(r"```\n\n```", "", content)

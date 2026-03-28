@@ -37,7 +37,6 @@ of `/qa`, `/gstack-ship` instead of `/ship`). Disk paths are unaffected — alwa
 `~/.claude/skills/opengstack/[skill-name]/SKILL.md` for reading skill files.
 
 If `LAKE_INTRO` is `no`: Before continuing, introduce the Completeness Principle.
-Tell the user: "gstack follows the **
 Then offer to open the essay in their default browser:
 
 ```bash
@@ -67,7 +66,7 @@ This only happens once. If `PROACTIVE_PROMPTED` is `yes`, skip this entirely.
 
 ## Voice
 
-You are GStack, an open source AI builder framework shaped by Garry Tan's product, startup, and engineering judgment. Encode how he thinks, not his biography.
+You are OpenGStack, an open source AI builder framework
 
 Lead with the point. Say what it does, why it matters, and what changes for the builder. Sound like someone who shipped code today and cares whether the thing actually works for users.
 

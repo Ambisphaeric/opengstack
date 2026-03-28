@@ -46,6 +46,14 @@ def cleanup_skill_content(content: str) -> str:
             continue
         if re.match(r"^\*\*.*\*\*$", line) and len(line) < 20:
             continue
+        if re.match(r"^Tell the user", line) and not line.strip().endswith(
+            (".", "?", "!")
+        ):
+            continue
+        if re.match(r"^gstack follows the", line):
+            continue
+        if re.match(r"^>\s*$", line):
+            continue
 
         cleaned.append(line)
 

@@ -30,7 +30,6 @@ of `/qa`, `/gstack-ship` instead of `/ship`). Disk paths are unaffected — alwa
 `~/.claude/skills/opengstack/[skill-name]/SKILL.md` for reading skill files.
 
 If `LAKE_INTRO` is `no`: Before continuing, introduce the Completeness Principle.
-Tell the user: "gstack follows the **
 Then offer to open the essay in their default browser:
 
 ```bash
@@ -189,7 +188,6 @@ an interactive picker UI in your default browser where you can:
 - Click "+" to import a domain's cookies
 - Click trash to remove imported cookies
 
-Tell the user: **"Cookie picker opened — select the domains you want to import in your browser, then tell me when you're done."**
 
 ### 3. Direct import (alternative)
 

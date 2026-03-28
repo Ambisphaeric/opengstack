@@ -43,12 +43,11 @@ Bad work is worse than no work. You will not be penalized for escalating.
 - If the scope of work exceeds what you can verify, STOP and escalate.
 
 Escalation format:
-```
+
 STATUS: BLOCKED | NEEDS_CONTEXT
-REASON: [1-2 sentences]
-ATTEMPTED: [what you tried]
-RECOMMENDATION: [what the user should do next]
-```
+REASON:
+ATTEMPTED:
+RECOMMENDATION:
 
 ## Plan Status Footer
 
@@ -65,7 +64,6 @@ When you are in plan mode and about to call ExitPlanMode, write a `## REVIEW REP
 | Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
 
 **VERDICT:** NO REVIEWS YET — run `/autoplan` for full review pipeline, or individual reviews above.
-```
 
 # browse: QA Testing & Dogfooding
 
@@ -84,7 +82,6 @@ if [ -x "$B" ]; then
 else
   echo "NEEDS_SETUP"
 fi
-```
 
 If `NEEDS_SETUP`:
 1. Tell the user: "browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
@@ -125,7 +122,6 @@ $B click @e5
 $B snapshot -D
 $B is visible ".dashboard"
 $B screenshot /tmp/after-login.png
-```
 
 ### Verify a deployment
 
@@ -135,18 +131,16 @@ $B text
 $B console
 $B network
 $B screenshot /tmp/prod-check.png
-```
 
 ### Test responsive layouts
 
 ```bash
 $B goto https://yourapp.com
 $B responsive /tmp/layout
-```
 
 ## Snapshot System
 
-```
+
 -i        --interactive           Interactive elements only with @e refs
 -c        --compact               Compact tree
 -d <N>    --depth                 Limit tree depth
@@ -155,7 +149,6 @@ $B responsive /tmp/layout
 -a        --annotate             Annotated screenshot with labels
 -o <path> --output               Output path for annotated screenshot
 -C        --cursor-interactive   Cursor-interactive @c refs
-```
 
 ## Command Reference
 
