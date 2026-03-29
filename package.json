@@ -1,8 +1,8 @@
 {
   "name": "opengstack",
-  "version": "0.13.10",
+  "version": "0.14.0",
   "private": false,
-  "description": "AI Engineering Workflow - SKILL.md files that give AI agents structured roles for software development. Forked from gstack but scrubbed clean of all the YC/Garry Tan cruft and telemetry.",
+  "description": "AI Engineering Workflow - Native slash commands for OpenCode. Forked from gstack but scrubbed clean of all the YC/Garry Tan cruft and telemetry.",
   "keywords": [
     "ai-agents",
     "claude",
@@ -35,13 +35,13 @@
     "CLAUDE.md",
     "AGENTS.md",
     "README.md",
-    "skills/",
+    "commands/",
     "scripts/",
     "docs/",
     "bin/"
   ],
   "scripts": {
-    "postinstall": "node scripts/install-skills.js",
+    "postinstall": "node scripts/install-commands.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
