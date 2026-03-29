@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { execSync } = require('child_process');
 
 const SKILLS_SOURCE = path.join(__dirname, '..', 'skills');
 const TARGET_DIRS = [
@@ -10,7 +11,24 @@ const TARGET_DIRS = [
   path.join(os.homedir(), '.agents', 'skills')                  // other agents
 ];
 
-function copySkills() {
+function copyDir(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  
+  fs.readdirSync(src).forEach(item => {
+    const srcPath = path.join(src, item);
+    const destPath = path.join(dest, item);
+    
+    if (fs.statSync(srcPath).isDirectory()) {
+      copyDir(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  });
+}
+
+function installSkills() {
   if (!fs.existsSync(SKILLS_SOURCE)) {
     console.error('❌ No skills/ folder found in package');
     process.exit(1);
@@ -33,7 +51,7 @@ function copySkills() {
         return;
       }
 
-      fs.cpSync(src, dest, { recursive: true, force: true });
+      copyDir(src, dest);
       console.log(`✅ Installed skill: /${skillName}`);
     });
   });
@@ -42,4 +60,4 @@ function copySkills() {
   console.log('Now just type /qa directly — no /skills menu needed.');
 }
 
-copySkills();
+installSkills();

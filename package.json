@@ -1,6 +1,6 @@
 {
   "name": "opengstack",
-  "version": "0.13.8",
+  "version": "0.13.9",
   "private": false,
   "description": "AI Engineering Workflow - SKILL.md files that give AI agents structured roles for software development. Forked from gstack but scrubbed clean of all the YC/Garry Tan cruft and telemetry.",
   "keywords": [
