@@ -2,7 +2,6 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
 
 const SKILLS_SOURCE = path.join(__dirname, '..', 'skills');
 const TARGET_DIRS = [
@@ -12,9 +11,8 @@ const TARGET_DIRS = [
 ];
 
 function copyDir(src, dest) {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
+  // Create destination directory (including parents)
+  fs.mkdirSync(dest, { recursive: true });
   
   fs.readdirSync(src).forEach(item => {
     const srcPath = path.join(src, item);
@@ -35,9 +33,8 @@ function installSkills() {
   }
 
   TARGET_DIRS.forEach(target => {
-    if (!fs.existsSync(target)) {
-      fs.mkdirSync(target, { recursive: true });
-    }
+    // Ensure parent directories exist
+    fs.mkdirSync(target, { recursive: true });
 
     fs.readdirSync(SKILLS_SOURCE).forEach(skillName => {
       const src = path.join(SKILLS_SOURCE, skillName);
