@@ -1,6 +1,6 @@
 {
  "name": "opengstack",
- "version": "0.14.0",
+ "version": "0.14.2",
  "private": false,
  "description": "AI Engineering Workflow - Native slash commands for OpenCode. Open source AI engineering workflow. No telemetry. No tracking.",
  "keywords": [
@@ -25,7 +25,7 @@
  "type": "commonjs",
  "main": "SKILL.md",
  "bin": {
- "opengstack": "./bin/OpenGStack.js"
+ "opengstack": "./bin/opengstack.js"
  },
  "directories": {
  "doc": "docs"
