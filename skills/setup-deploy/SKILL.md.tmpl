@@ -3,25 +3,25 @@ name: setup-deploy
 preamble-tier: 2
 version: 1.0.0
 description: |
-  Configure deployment settings for /land-and-deploy. Detects your deploy
-  platform (Fly.io, Render, Vercel, Netlify, Heroku, GitHub Actions, custom),
-  production URL, health check endpoints, and deploy status commands. Writes
-  the configuration to CLAUDE.md so all future deploys are automatic.
-  Use when: "setup deploy", "configure deployment", "set up land-and-deploy",
-  "how do I deploy with gstack", "add deploy config".
+ Configure deployment settings for /land-and-deploy. Detects your deploy
+ platform (Fly.io, Render, Vercel, Netlify, Heroku, GitHub Actions, custom),
+ production URL, health check endpoints, and deploy status commands. Writes
+ the configuration to CLAUDE.md so all future deploys are automatic.
+ Use when: "setup deploy", "configure deployment", "set up land-and-deploy",
+ "how do I deploy with OpenGStack", "add deploy config".
 allowed-tools:
-  - Bash
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - AskUserQuestion
+ - Bash
+ - Read
+ - Write
+ - Edit
+ - Glob
+ - Grep
+ - AskUserQuestion
 ---
 
 {{PREAMBLE}}
 
-# /setup-deploy — Configure Deployment for gstack
+# /setup-deploy — Configure Deployment for opengstack
 
 You are helping the user configure their deployment so `/land-and-deploy` works
 automatically. Your job is to detect the deploy platform, production URL, health
@@ -38,6 +38,7 @@ When the user types `/setup-deploy`, run this skill.
 
 ```bash
 grep -A 20 "## Deploy Configuration" CLAUDE.md 2>/dev/null || echo "NO_CONFIG"
+```
 
 If configuration already exists, show it and ask:
 
@@ -64,12 +65,13 @@ Run the platform detection from the deploy bootstrap:
 
 # GitHub Actions deploy workflows
 for f in $(find .github/workflows -maxdepth 1 \( -name '*.yml' -o -name '*.yaml' \) 2>/dev/null); do
-  [ -f "$f" ] && grep -qiE "deploy|release|production|staging|cd" "$f" 2>/dev/null && echo "DEPLOY_WORKFLOW:$f"
+ [ -f "$f" ] && grep -qiE "deploy|release|production|staging|cd" "$f" 2>/dev/null && echo "DEPLOY_WORKFLOW:$f"
 done
 
 # Project type
 [ -f package.json ] && grep -q '"bin"' package.json 2>/dev/null && echo "PROJECT_TYPE:cli"
 find . -maxdepth 1 -name '*.gemspec' 2>/dev/null | grep -q . && echo "PROJECT_TYPE:library"
+```
 
 ### Step 3: Platform-specific setup
 
@@ -134,23 +136,23 @@ If nothing detected:
 Use AskUserQuestion to gather the information:
 
 1. **How are deploys triggered?**
-   - A) Automatically on push to main (Fly, Render, Vercel, Netlify, etc.)
-   - B) Via GitHub Actions workflow
-   - C) Via a deploy script or CLI command (describe it)
-   - D) Manually (SSH, dashboard, etc.)
-   - E) This project doesn't deploy (library, CLI, tool)
+ - A) Automatically on push to main (Fly, Render, Vercel, Netlify, etc.)
+ - B) Via GitHub Actions workflow
+ - C) Via a deploy script or CLI command (describe it)
+ - D) Manually (SSH, dashboard, etc.)
+ - E) This project doesn't deploy (library, CLI, tool)
 
 2. **What's the production URL?** (Free text — the URL where the app runs)
 
-3. **How can gstack check if a deploy succeeded?**
-   - A) HTTP health check at a specific URL (e.g., /health, /api/status)
-   - B) CLI command (e.g., `fly status`, `kubectl rollout status`)
-   - C) Check the GitHub Actions workflow status
-   - D) No automated way — just check the URL loads
+3. **How can opengstack check if a deploy succeeded?**
+ - A) HTTP health check at a specific URL (e.g., /health, /api/status)
+ - B) CLI command (e.g., `fly status`, `kubectl rollout status`)
+ - C) Check the GitHub Actions workflow status
+ - D) No automated way — just check the URL loads
 
 4. **Any pre-merge or post-merge hooks?**
-   - Commands to run before merging (e.g., `bun run build`)
-   - Commands to run after merge but before deploy verification
+ - Commands to run before merging (e.g., `bun run build`)
+ - Commands to run after merge but before deploy verification
 
 ### Step 4: Write configuration
 
@@ -172,6 +174,7 @@ if it exists, or append it at the end.
 - Deploy trigger: {command or "automatic on push to main"}
 - Deploy status: {command or "poll production URL"}
 - Health check: {URL or command}
+```
 
 ### Step 5: Verify
 
@@ -180,24 +183,26 @@ After writing, verify the configuration works:
 1. If a health check URL was configured, try it:
 ```bash
 curl -sf "{health-check-url}" -o /dev/null -w "%{http_code}" 2>/dev/null || echo "UNREACHABLE"
+```
 
 2. If a deploy status command was configured, try it:
 ```bash
 {deploy-status-command} 2>/dev/null | head -5 || echo "COMMAND_FAILED"
+```
 
 Report results. If anything failed, note it but don't block — the config is still
 useful even if the health check is temporarily unreachable.
 
 ### Step 6: Summary
 
-
+```
 DEPLOY CONFIGURATION — COMPLETE
 ════════════════════════════════
-Platform:      {platform}
-URL:           {url}
-Health check:  {health check}
-Status cmd:    {status command}
-Merge method:  {merge method}
+Platform: {platform}
+URL: {url}
+Health check: {health check}
+Status cmd: {status command}
+Merge method: {merge method}
 
 Saved to CLAUDE.md. /land-and-deploy will use these settings automatically.
 
@@ -205,6 +210,7 @@ Next steps:
 - Run /land-and-deploy to merge and deploy your current PR
 - Edit the "## Deploy Configuration" section in CLAUDE.md to change settings
 - Run /setup-deploy again to reconfigure
+```
 
 ## Important Rules
 

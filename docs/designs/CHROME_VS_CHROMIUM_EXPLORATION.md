@@ -56,19 +56,19 @@ During a `/office-hours` design session, we traced the architecture and discover
 
 ```
 Browser States:
-  HEADLESS (default) ←→ HEADED ($B connect or $B handoff)
-     Playwright            Playwright (same engine)
-     launch()              launchPersistentContext()
-     invisible             visible + extension + side panel
+ HEADLESS (default) ←→ HEADED ($B connect or $B handoff)
+ Playwright Playwright (same engine)
+ launch() launchPersistentContext()
+ invisible visible + extension + side panel
 
 Sidebar (orthogonal add-on, headed only):
-  Activity tab    — always on, shows live browse commands
-  Refs tab        — always on, shows @ref overlays
-  Chat tab        — opt-in via --chat, experimental standalone agent
+ Activity tab — always on, shows live browse commands
+ Refs tab — always on, shows @ref overlays
+ Chat tab — opt-in via --chat, experimental standalone agent
 
 Data Bridge (sidebar → workspace):
-  Sidebar writes to .context/sidebar-inbox/*.json
-  Workspace reads via $B inbox
+ Sidebar writes to .context/sidebar-inbox/*.json
+ Workspace reads via $B inbox
 ```
 
 ## Why Not Real Chrome?

@@ -1,47 +1,47 @@
 {
-  "name": "opengstack",
-  "version": "0.14.0",
-  "private": false,
-  "description": "AI Engineering Workflow - Native slash commands for OpenCode. Forked from gstack but scrubbed clean of all the YC/Garry Tan cruft and telemetry.",
-  "keywords": [
-    "ai-agents",
-    "claude",
-    "workflow",
-    "skills",
-    "agent-instructions",
-    "gstack",
-    "opengstack"
-  ],
-  "homepage": "https://github.com/Ambisphaeric/opengstack#readme",
-  "bugs": {
-    "url": "https://github.com/Ambisphaeric/opengstack/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Ambisphaeric/opengstack.git"
-  },
-  "license": "MIT",
-  "author": "Ambisphaeric",
-  "type": "commonjs",
-  "main": "SKILL.md",
-  "bin": {
-    "opengstack": "./bin/opengstack.js"
-  },
-  "directories": {
-    "doc": "docs"
-  },
-  "files": [
-    "SKILL.md",
-    "CLAUDE.md",
-    "AGENTS.md",
-    "README.md",
-    "commands/",
-    "scripts/",
-    "docs/",
-    "bin/"
-  ],
-  "scripts": {
-    "postinstall": "node scripts/install-commands.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
+ "name": "opengstack",
+ "version": "0.14.0",
+ "private": false,
+ "description": "AI Engineering Workflow - Native slash commands for OpenCode. Open source AI engineering workflow. No telemetry. No tracking.",
+ "keywords": [
+ "ai-agents",
+ "claude",
+ "workflow",
+ "skills",
+ "agent-instructions",
+ "opengstack",
+ "opengstack"
+ ],
+ "homepage": "https://github.com/Ambisphaeric/opengstack#readme",
+ "bugs": {
+ "url": "https://github.com/Ambisphaeric/opengstack/issues"
+ },
+ "repository": {
+ "type": "git",
+ "url": "git+https://github.com/Ambisphaeric/OpenGStack.git"
+ },
+ "license": "MIT",
+ "author": "Ambisphaeric",
+ "type": "commonjs",
+ "main": "SKILL.md",
+ "bin": {
+ "opengstack": "./bin/OpenGStack.js"
+ },
+ "directories": {
+ "doc": "docs"
+ },
+ "files": [
+ "SKILL.md",
+ "CLAUDE.md",
+ "AGENTS.md",
+ "README.md",
+ "commands/",
+ "scripts/",
+ "docs/",
+ "bin/"
+ ],
+ "scripts": {
+ "postinstall": "node scripts/install-commands.js",
+ "test": "echo \"Error: no test specified\" && exit 1"
+ }
 }

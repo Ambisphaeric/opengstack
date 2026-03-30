@@ -21,7 +21,7 @@ Pre-Landing Review: N issues (X critical, Y informational)
 
 **NEEDS INPUT:**
 - [file:line] Problem description
-  Recommended fix: suggested fix
+ Recommended fix: suggested fix
 ```
 
 If no issues found: `Pre-Landing Review: No issues found.`
@@ -103,7 +103,7 @@ To do this: use Grep to find all references to the sibling values (e.g., grep fo
 
 #### Completeness Gaps
 - Shortcut implementations where the complete version would cost <30 minutes CC time (e.g., partial enum handling, incomplete error paths, missing edge cases that are straightforward to add)
-- Options presented with only human-team effort estimates — should show both human and CC+gstack time
+- Options presented with only human-team effort estimates — should show both human and CC+opengstack time
 - Test coverage gaps where adding the missing tests is a "lake" not an "ocean" (e.g., missing negative-path tests, missing edge case tests that mirror happy-path structure)
 - Features implemented at 80-90% when 100% is achievable with modest additional code
 
@@ -159,19 +159,19 @@ To do this: use Grep to find all references to the sibling values (e.g., grep fo
 ## Severity Classification
 
 ```
-CRITICAL (highest severity):      INFORMATIONAL (lower severity):
-├─ SQL & Data Safety              ├─ Conditional Side Effects
-├─ Race Conditions & Concurrency  ├─ Magic Numbers & String Coupling
-├─ LLM Output Trust Boundary      ├─ Dead Code & Consistency
-└─ Enum & Value Completeness      ├─ LLM Prompt Issues
-                                   ├─ Test Gaps
-                                   ├─ Completeness Gaps
-                                   ├─ Crypto & Entropy
-                                   ├─ Time Window Safety
-                                   ├─ Type Coercion at Boundaries
-                                   ├─ View/Frontend
-                                   ├─ Performance & Bundle Impact
-                                   └─ Distribution & CI/CD Pipeline
+CRITICAL (highest severity): INFORMATIONAL (lower severity):
+├─ SQL & Data Safety ├─ Conditional Side Effects
+├─ Race Conditions & Concurrency ├─ Magic Numbers & String Coupling
+├─ LLM Output Trust Boundary ├─ Dead Code & Consistency
+└─ Enum & Value Completeness ├─ LLM Prompt Issues
+ ├─ Test Gaps
+ ├─ Completeness Gaps
+ ├─ Crypto & Entropy
+ ├─ Time Window Safety
+ ├─ Type Coercion at Boundaries
+ ├─ View/Frontend
+ ├─ Performance & Bundle Impact
+ └─ Distribution & CI/CD Pipeline
 
 All findings are actioned via Fix-First Review. Severity determines
 presentation order and classification of AUTO-FIX vs ASK — critical
@@ -187,15 +187,15 @@ This heuristic is referenced by both `/review` and `/ship`. It determines whethe
 the agent auto-fixes a finding or asks the user.
 
 ```
-AUTO-FIX (agent fixes without asking):     ASK (needs human judgment):
-├─ Dead code / unused variables            ├─ Security (auth, XSS, injection)
-├─ N+1 queries (missing eager loading)      ├─ Race conditions
-├─ Stale comments contradicting code       ├─ Design decisions
-├─ Magic numbers → named constants         ├─ Large fixes (>20 lines)
-├─ Missing LLM output validation           ├─ Enum completeness
-├─ Version/path mismatches                 ├─ Removing functionality
-├─ Variables assigned but never read       └─ Anything changing user-visible
-└─ Inline styles, O(n*m) view lookups        behavior
+AUTO-FIX (agent fixes without asking): ASK (needs human judgment):
+├─ Dead code / unused variables ├─ Security (auth, XSS, injection)
+├─ N+1 queries (missing eager loading) ├─ Race conditions
+├─ Stale comments contradicting code ├─ Design decisions
+├─ Magic numbers → named constants ├─ Large fixes (>20 lines)
+├─ Missing LLM output validation ├─ Enum completeness
+├─ Version/path mismatches ├─ Removing functionality
+├─ Variables assigned but never read └─ Anything changing user-visible
+└─ Inline styles, O(n*m) view lookups behavior
 ```
 
 **Rule of thumb:** If the fix is mechanical and a senior engineer would apply it

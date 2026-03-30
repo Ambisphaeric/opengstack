@@ -3,30 +3,28 @@
 
 ## Preamble (run first)
 
-
-If `PROACTIVE` is `"false"`, do not proactively suggest gstack skills AND do not
+If `PROACTIVE` is `"false"`, do not proactively suggest opengstack skills AND do not
 auto-invoke skills based on conversation context. Only run skills the user explicitly
 types (e.g., /qa, /ship). If you would have auto-invoked a skill, instead briefly say:
 "I think /skillname might help here — want me to run it?" and wait for confirmation.
 The user opted out of proactive behavior.
 
 If `SKILL_PREFIX` is `"true"`, the user has namespaced skill names. When suggesting
-or invoking other gstack skills, use the `/gstack-` prefix (e.g., `/gstack-qa` instead
-of `/qa`, `/gstack-ship` instead of `/ship`). Disk paths are unaffected — always use
+or invoking other opengstack skills, use the `/opengstack-` prefix (e.g., `/opengstack-qa` instead
+of `/qa`, `/opengstack-ship` instead of `/ship`). Disk paths are unaffected — always use
 `~/.claude/skills/opengstack/[skill-name]/SKILL.md` for reading skill files.
 
 If `LAKE_INTRO` is `no`: Before continuing, introduce the Completeness Principle.
 Then offer to open the essay in their default browser:
 
 ```bash
-touch ~/.gstack/.completeness-intro-seen
+touch ~/.opengstack/.completeness-intro-seen
 
 Only run `open` if the user says yes. Always run `touch` to mark as seen. This only happens once.
 
-If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: After telemetry is handled,
 ask the user about proactive behavior. Use AskUserQuestion:
 
-> gstack can proactively figure out when you might need a skill while you work —
+> opengstack can proactively figure out when you might need a skill while you work —
 > like suggesting /qa when you say "does this work?" or /investigate when you hit
 > a bug. We recommend keeping this on — it speeds up every part of your workflow.
 
@@ -39,7 +37,7 @@ If B: run `echo set proactive false`
 
 Always run:
 ```bash
-touch ~/.gstack/.proactive-prompted
+touch ~/.opengstack/.proactive-prompted
 
 This only happens once. If `PROACTIVE_PROMPTED` is `yes`, skip this entirely.
 
@@ -77,30 +75,29 @@ RECOMMENDATION:
 
 Replace `SKILL_NAME` with the actual skill name from frontmatter, `OUTCOME` with
 success/error/abort, and `USED_BROWSE` with true/false based on whether `$B` was used.
-If you cannot determine the outcome, use "unknown". The local JSONL always logs. The
-remote binary only runs if telemetry is not off and the binary exists.
+If you cannot determine the outcome, use "unknown".
 
 ## Plan Status Footer
 
 When you are in plan mode and about to call ExitPlanMode:
 
-1. Check if the plan file already has a `## GSTACK REVIEW REPORT` section.
+1. Check if the plan file already has a `## opengstack REVIEW REPORT` section.
 2. If it DOES — skip (a review skill already wrote a richer report).
 3. If it does NOT — run this command:
 
 \`\`\`bash
-~/.claude/skills/opengstack/bin/gstack-review-read
+~/.claude/skills/opengstack/bin/opengstack-review-read
 \`\`\`
 
-Then write a `## GSTACK REVIEW REPORT` section to the end of the plan file:
+Then write a `## opengstack REVIEW REPORT` section to the end of the plan file:
 
 - If the output contains review entries (JSONL lines before `---CONFIG---`): format the
-  standard report table with runs/status/findings per skill, same format as the review
-  skills use.
+ standard report table with runs/status/findings per skill, same format as the review
+ skills use.
 - If the output is `NO_REVIEWS` or empty: write this placeholder table:
 
 \`\`\`markdown
-## GSTACK REVIEW REPORT
+## opengstack REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
@@ -144,23 +141,23 @@ If `CDP_MODE=true`: tell the user "Not needed — you're connected to your real 
 ```bash
 _ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 B=""
-[ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/gstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/gstack/browse/dist/browse"
+[ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/opengstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/opengstack/browse/dist/browse"
 [ -z "$B" ] && B=~/.claude/skills/opengstack/browse/dist/browse
 if [ -x "$B" ]; then
-  echo "READY: $B"
+ echo "READY: $B"
 else
-  echo "NEEDS_SETUP"
+ echo "NEEDS_SETUP"
 fi
 
 If `NEEDS_SETUP`:
-1. Tell the user: "gstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
+1. Tell the user: "opengstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
 2. Run: `cd <SKILL_DIR> && ./setup`
 3. If `bun` is not installed:
-   ```bash
-   if ! command -v bun >/dev/null 2>&1; then
-     curl -fsSL https://bun.sh/install | BUN_VERSION=1.3.10 bash
-   fi
-   ```
+ ```bash
+ if ! command -v bun >/dev/null 2>&1; then
+ curl -fsSL https://bun.sh/install | BUN_VERSION=1.3.10 bash
+ fi
+ ```
 
 ### 2. Open the cookie picker
 
@@ -173,7 +170,6 @@ an interactive picker UI in your default browser where you can:
 - Search domains
 - Click "+" to import a domain's cookies
 - Click trash to remove imported cookies
-
 
 ### 3. Direct import (alternative)
 

@@ -3,17 +3,17 @@ name: canary
 preamble-tier: 2
 version: 1.0.0
 description: |
-  Post-deploy canary monitoring. Watches the live app for console errors,
-  performance regressions, and page failures using the browse daemon. Takes
-  periodic screenshots, compares against pre-deploy baselines, and alerts
-  on anomalies. Use when: "monitor deploy", "canary", "post-deploy check",
-  "watch production", "verify deploy".
+ Post-deploy canary monitoring. Watches the live app for console errors,
+ performance regressions, and page failures using the browse daemon. Takes
+ periodic screenshots, compares against pre-deploy baselines, and alerts
+ on anomalies. Use when: "monitor deploy", "canary", "post-deploy check",
+ "watch production", "verify deploy". (OpenGStack)
 allowed-tools:
-  - Bash
-  - Read
-  - Write
-  - Glob
-  - AskUserQuestion
+ - Bash
+ - Read
+ - Write
+ - Glob
+ - AskUserQuestion
 ---
 
 {{PREAMBLE}}
@@ -43,10 +43,11 @@ When the user types `/canary`, run this skill.
 ### Phase 1: Setup
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null || echo "SLUG=unknown")"
-mkdir -p .gstack/canary-reports
-mkdir -p .gstack/canary-reports/baselines
-mkdir -p .gstack/canary-reports/screenshots
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null || echo "SLUG=unknown")"
+mkdir -p .OpenGStack/canary-reports
+mkdir -p .OpenGStack/canary-reports/baselines
+mkdir -p .OpenGStack/canary-reports/screenshots
+```
 
 Parse the user's arguments. Default duration is 10 minutes. Default pages: auto-discover from the app's navigation.
 
@@ -58,28 +59,30 @@ For each page (either from `--pages` or the homepage):
 
 ```bash
 $B goto <page-url>
-$B snapshot -i -a -o ".gstack/canary-reports/baselines/<page-name>.png"
+$B snapshot -i -a -o ".OpenGStack/canary-reports/baselines/<page-name>.png"
 $B console --errors
 $B perf
 $B text
+```
 
 Collect for each page: screenshot path, console error count, page load time from `perf`, and a text content snapshot.
 
-Save the baseline manifest to `.gstack/canary-reports/baseline.json`:
+Save the baseline manifest to `.OpenGStack/canary-reports/baseline.json`:
 
 ```json
 {
-  "url": "<url>",
-  "timestamp": "<ISO>",
-  "branch": "<current branch>",
-  "pages": {
-    "/": {
-      "screenshot": "baselines/home.png",
-      "console_errors": 0,
-      "load_time_ms": 450
-    }
-  }
+ "url": "<url>",
+ "timestamp": "<ISO>",
+ "branch": "<current branch>",
+ "pages": {
+ "/": {
+ "screenshot": "baselines/home.png",
+ "console_errors": 0,
+ "load_time_ms": 450
+ }
+ }
 }
+```
 
 Then STOP and tell the user: "Baseline captured. Deploy your changes, then run `/canary <url>` to monitor."
 
@@ -91,6 +94,7 @@ If no `--pages` were specified, auto-discover pages to monitor:
 $B goto <url>
 $B links
 $B snapshot -i
+```
 
 Extract the top 5 internal navigation links from the `links` output. Always include the homepage. Present the page list via AskUserQuestion:
 
@@ -109,9 +113,10 @@ For each page to monitor:
 
 ```bash
 $B goto <page-url>
-$B snapshot -i -a -o ".gstack/canary-reports/screenshots/pre-<page-name>.png"
+$B snapshot -i -a -o ".OpenGStack/canary-reports/screenshots/pre-<page-name>.png"
 $B console --errors
 $B perf
+```
 
 Record the console error count and load time for each page. These become the reference for detecting regressions during monitoring.
 
@@ -121,9 +126,10 @@ Monitor for the specified duration. Every 60 seconds, check each page:
 
 ```bash
 $B goto <page-url>
-$B snapshot -i -a -o ".gstack/canary-reports/screenshots/<page-name>-<check-number>.png"
+$B snapshot -i -a -o ".OpenGStack/canary-reports/screenshots/<page-name>-<check-number>.png"
 $B console --errors
 $B perf
+```
 
 After each check, compare results against the baseline (or pre-deploy snapshot):
 
@@ -138,16 +144,17 @@ After each check, compare results against the baseline (or pre-deploy snapshot):
 
 **If a CRITICAL or HIGH alert is detected**, immediately notify the user via AskUserQuestion:
 
-
+```
 CANARY ALERT
 ════════════
-Time:     [timestamp, e.g., check #3 at 180s]
-Page:     [page URL]
-Type:     [CRITICAL / HIGH / MEDIUM]
-Finding:  [what changed — be specific]
+Time: [timestamp, e.g., check #3 at 180s]
+Page: [page URL]
+Type: [CRITICAL / HIGH / MEDIUM]
+Finding: [what changed — be specific]
 Evidence: [screenshot path]
 Baseline: [baseline value]
-Current:  [current value]
+Current: [current value]
+```
 
 - **Context:** Canary monitoring detected an issue on [page] after [duration].
 - **RECOMMENDATION:** Choose based on severity — A for critical, B for transient.
@@ -160,33 +167,35 @@ Current:  [current value]
 
 After monitoring completes (or if the user stops early), produce a summary:
 
-
+```
 CANARY REPORT — [url]
 ═════════════════════
-Duration:     [X minutes]
-Pages:        [N pages monitored]
-Checks:       [N total checks performed]
-Status:       [HEALTHY / DEGRADED / BROKEN]
+Duration: [X minutes]
+Pages: [N pages monitored]
+Checks: [N total checks performed]
+Status: [HEALTHY / DEGRADED / BROKEN]
 
 Per-Page Results:
 ─────────────────────────────────────────────────────
-  Page            Status      Errors    Avg Load
-  /               HEALTHY     0         450ms
-  /dashboard      DEGRADED    2 new     1200ms (was 400ms)
-  /settings       HEALTHY     0         380ms
+ Page Status Errors Avg Load
+ / HEALTHY 0 450ms
+ /dashboard DEGRADED 2 new 1200ms (was 400ms)
+ /settings HEALTHY 0 380ms
 
-Alerts Fired:  [N] (X critical, Y high, Z medium)
-Screenshots:   .gstack/canary-reports/screenshots/
+Alerts Fired: [N] (X critical, Y high, Z medium)
+Screenshots: .OpenGStack/canary-reports/screenshots/
 
 VERDICT: [DEPLOY IS HEALTHY / DEPLOY HAS ISSUES — details above]
+```
 
-Save report to `.gstack/canary-reports/{date}-canary.md` and `.gstack/canary-reports/{date}-canary.json`.
+Save report to `.OpenGStack/canary-reports/{date}-canary.md` and `.OpenGStack/canary-reports/{date}-canary.json`.
 
 Log the result for the review dashboard:
 
 ```bash
 {{SLUG_EVAL}}
-mkdir -p ~/.gstack/projects/$SLUG
+mkdir -p ~/.opengstack/projects/$SLUG
+```
 
 Write a JSONL entry: `{"skill":"canary","timestamp":"<ISO>","status":"<HEALTHY/DEGRADED/BROKEN>","url":"<url>","duration_min":<N>,"alerts":<N>}`
 

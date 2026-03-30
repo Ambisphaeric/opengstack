@@ -9,7 +9,7 @@ Shared reference for the canonical TODOS.md format. Referenced by `/ship` (Step 
 ```markdown
 # TODOS
 
-## <Skill/Component>     ← e.g., ## Browse, ## Ship, ## Review, ## Infrastructure
+## <Skill/Component> ← e.g., ## Browse, ## Ship, ## Review, ## Infrastructure
 <items sorted P0 first, then P1, P2, P3, P4>
 
 ## Completed

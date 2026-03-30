@@ -3,30 +3,28 @@
 
 ## Preamble (run first)
 
-
-If `PROACTIVE` is `"false"`, do not proactively suggest gstack skills AND do not
+If `PROACTIVE` is `"false"`, do not proactively suggest opengstack skills AND do not
 auto-invoke skills based on conversation context. Only run skills the user explicitly
 types (e.g., /qa, /ship). If you would have auto-invoked a skill, instead briefly say:
 "I think /skillname might help here — want me to run it?" and wait for confirmation.
 The user opted out of proactive behavior.
 
 If `SKILL_PREFIX` is `"true"`, the user has namespaced skill names. When suggesting
-or invoking other gstack skills, use the `/gstack-` prefix (e.g., `/gstack-qa` instead
-of `/qa`, `/gstack-ship` instead of `/ship`). Disk paths are unaffected — always use
+or invoking other opengstack skills, use the `/opengstack-` prefix (e.g., `/opengstack-qa` instead
+of `/qa`, `/opengstack-ship` instead of `/ship`). Disk paths are unaffected — always use
 `~/.claude/skills/opengstack/[skill-name]/SKILL.md` for reading skill files.
 
 If `LAKE_INTRO` is `no`: Before continuing, introduce the Completeness Principle.
 Then offer to open the essay in their default browser:
 
 ```bash
-touch ~/.gstack/.completeness-intro-seen
+touch ~/.opengstack/.completeness-intro-seen
 
 Only run `open` if the user says yes. Always run `touch` to mark as seen. This only happens once.
 
-If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: After telemetry is handled,
 ask the user about proactive behavior. Use AskUserQuestion:
 
-> gstack can proactively figure out when you might need a skill while you work —
+> opengstack can proactively figure out when you might need a skill while you work —
 > like suggesting /qa when you say "does this work?" or /investigate when you hit
 > a bug. We recommend keeping this on — it speeds up every part of your workflow.
 
@@ -39,7 +37,7 @@ If B: run `echo set proactive false`
 
 Always run:
 ```bash
-touch ~/.gstack/.proactive-prompted
+touch ~/.opengstack/.proactive-prompted
 
 This only happens once. If `PROACTIVE_PROMPTED` is `yes`, skip this entirely.
 
@@ -77,30 +75,29 @@ RECOMMENDATION:
 
 Replace `SKILL_NAME` with the actual skill name from frontmatter, `OUTCOME` with
 success/error/abort, and `USED_BROWSE` with true/false based on whether `$B` was used.
-If you cannot determine the outcome, use "unknown". The local JSONL always logs. The
-remote binary only runs if telemetry is not off and the binary exists.
+If you cannot determine the outcome, use "unknown".
 
 ## Plan Status Footer
 
 When you are in plan mode and about to call ExitPlanMode:
 
-1. Check if the plan file already has a `## GSTACK REVIEW REPORT` section.
+1. Check if the plan file already has a `## opengstack REVIEW REPORT` section.
 2. If it DOES — skip (a review skill already wrote a richer report).
 3. If it does NOT — run this command:
 
 \`\`\`bash
-~/.claude/skills/opengstack/bin/gstack-review-read
+~/.claude/skills/opengstack/bin/opengstack-review-read
 \`\`\`
 
-Then write a `## GSTACK REVIEW REPORT` section to the end of the plan file:
+Then write a `## opengstack REVIEW REPORT` section to the end of the plan file:
 
 - If the output contains review entries (JSONL lines before `---CONFIG---`): format the
-  standard report table with runs/status/findings per skill, same format as the review
-  skills use.
+ standard report table with runs/status/findings per skill, same format as the review
+ skills use.
 - If the output is `NO_REVIEWS` or empty: write this placeholder table:
 
 \`\`\`markdown
-## GSTACK REVIEW REPORT
+## opengstack REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
@@ -126,60 +123,60 @@ State persists between calls (cookies, tabs, login sessions).
 ```bash
 _ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 B=""
-[ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/gstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/gstack/browse/dist/browse"
+[ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/opengstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/opengstack/browse/dist/browse"
 [ -z "$B" ] && B=~/.claude/skills/opengstack/browse/dist/browse
 if [ -x "$B" ]; then
-  echo "READY: $B"
+ echo "READY: $B"
 else
-  echo "NEEDS_SETUP"
+ echo "NEEDS_SETUP"
 fi
 
 If `NEEDS_SETUP`:
-1. Tell the user: "gstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
+1. Tell the user: "opengstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
 2. Run: `cd <SKILL_DIR> && ./setup`
 3. If `bun` is not installed:
-   ```bash
-   if ! command -v bun >/dev/null 2>&1; then
-     curl -fsSL https://bun.sh/install | BUN_VERSION=1.3.10 bash
-   fi
-   ```
+ ```bash
+ if ! command -v bun >/dev/null 2>&1; then
+ curl -fsSL https://bun.sh/install | BUN_VERSION=1.3.10 bash
+ fi
+ ```
 
 ## Core QA Patterns
 
 ### 1. Verify a page loads correctly
 ```bash
 $B goto https://yourapp.com
-$B text                          # content loads?
-$B console                       # JS errors?
-$B network                       # failed requests?
-$B is visible ".main-content"    # key elements present?
+$B text # content loads?
+$B console # JS errors?
+$B network # failed requests?
+$B is visible ".main-content" # key elements present?
 
 ### 2. Test a user flow
 ```bash
 $B goto https://app.com/login
-$B snapshot -i                   # see all interactive elements
+$B snapshot -i # see all interactive elements
 $B fill @e3 "user@test.com"
 $B fill @e4 "password"
-$B click @e5                     # submit
-$B snapshot -D                   # diff: what changed after submit?
-$B is visible ".dashboard"       # success state present?
+$B click @e5 # submit
+$B snapshot -D # diff: what changed after submit?
+$B is visible ".dashboard" # success state present?
 
 ### 3. Verify an action worked
 ```bash
-$B snapshot                      # baseline
-$B click @e3                     # do something
-$B snapshot -D                   # unified diff shows exactly what changed
+$B snapshot # baseline
+$B click @e3 # do something
+$B snapshot -D # unified diff shows exactly what changed
 
 ### 4. Visual evidence for bug reports
 ```bash
-$B snapshot -i -a -o /tmp/annotated.png   # labeled screenshot
-$B screenshot /tmp/bug.png                # plain screenshot
-$B console                                # error log
+$B snapshot -i -a -o /tmp/annotated.png # labeled screenshot
+$B screenshot /tmp/bug.png # plain screenshot
+$B console # error log
 
 ### 5. Find all clickable elements (including non-ARIA)
 ```bash
-$B snapshot -C                   # finds divs with cursor:pointer, onclick, tabindex
-$B click @c1                     # interact with them
+$B snapshot -C # finds divs with cursor:pointer, onclick, tabindex
+$B click @c1 # interact with them
 
 ### 6. Assert element states
 ```bash
@@ -193,8 +190,8 @@ $B js "document.body.textContent.includes('Success')"
 
 ### 7. Test responsive layouts
 ```bash
-$B responsive /tmp/layout        # mobile + tablet + desktop screenshots
-$B viewport 375x812              # or set specific viewport
+$B responsive /tmp/layout # mobile + tablet + desktop screenshots
+$B viewport 375x812 # or set specific viewport
 $B screenshot /tmp/mobile.png
 
 ### 8. Test file uploads
@@ -204,10 +201,10 @@ $B is visible ".upload-success"
 
 ### 9. Test dialogs
 ```bash
-$B dialog-accept "yes"           # set up handler
-$B click "#delete-button"        # trigger dialog
-$B dialog                        # see what appeared
-$B snapshot -D                   # verify deletion happened
+$B dialog-accept "yes" # set up handler
+$B click "#delete-button" # trigger dialog
+$B dialog # see what appeared
+$B snapshot -D # verify deletion happened
 
 ### 10. Compare environments
 ```bash
@@ -226,8 +223,8 @@ login), hand off to the user:
 $B handoff "Stuck on CAPTCHA at login page"
 
 # 2. Tell the user what happened (via AskUserQuestion)
-#    "I've opened Chrome at the login page. Please solve the CAPTCHA
-#     and let me know when you're done."
+# "I've opened Chrome at the login page. Please solve the CAPTCHA
+# and let me know when you're done."
 
 # 3. When user says "done", re-snapshot and continue
 $B resume
@@ -245,15 +242,14 @@ After `resume`, you get a fresh snapshot of wherever the user left off.
 
 The snapshot is your primary tool for understanding and interacting with pages.
 
-
--i        --interactive           Interactive elements only (buttons, links, inputs) with @e refs
--c        --compact               Compact (no empty structural nodes)
--d <N>    --depth                 Limit tree depth (0 = root only, default: unlimited)
--s <sel>  --selector              Scope to CSS selector
--D        --diff                  Unified diff against previous snapshot (first call stores baseline)
--a        --annotate              Annotated screenshot with red overlay boxes and ref labels
--o <path> --output                Output path for annotated screenshot (default: <temp>/browse-annotated.png)
--C        --cursor-interactive    Cursor-interactive elements (@c refs — divs with pointer, onclick)
+-i --interactive Interactive elements only (buttons, links, inputs) with @e refs
+-c --compact Compact (no empty structural nodes)
+-d <N> --depth Limit tree depth (0 = root only, default: unlimited)
+-s <sel> --selector Scope to CSS selector
+-D --diff Unified diff against previous snapshot (first call stores baseline)
+-a --annotate Annotated screenshot with red overlay boxes and ref labels
+-o <path> --output Output path for annotated screenshot (default: <temp>/browse-annotated.png)
+-C --cursor-interactive Cursor-interactive elements (@c refs — divs with pointer, onclick)
 
 All flags can be combined freely. `-o` only applies when `-a` is also used.
 Example: `$B snapshot -i -a -C -o /tmp/annotated.png`
@@ -263,15 +259,15 @@ Example: `$B snapshot -i -a -C -o /tmp/annotated.png`
 
 After snapshot, use @refs as selectors in any command:
 ```bash
-$B click @e3       $B fill @e4 "value"     $B hover @e1
-$B html @e2        $B css @e5 "color"      $B attrs @e6
-$B click @c1       # cursor-interactive ref (from -C)
+$B click @e3 $B fill @e4 "value" $B hover @e1
+$B html @e2 $B css @e5 "color" $B attrs @e6
+$B click @c1 # cursor-interactive ref (from -C)
 
 **Output format:** indented accessibility tree with @ref IDs, one element per line.
 
-  @e1
-  @e2 [textbox] "Email"
-  @e3 [button] "Submit"
+ @e1
+ @e2 [textbox] "Email"
+ @e3 [button] "Submit"
 
 Refs are invalidated on navigation — run `snapshot` again after `goto`.
 

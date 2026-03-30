@@ -1,7 +1,7 @@
 # Design: Design Shotgun — Browser-to-Agent Feedback Loop
 
 Generated on 2026-03-27
-Branch: garrytan/agent-design-tools
+Branch: 
 Status: LIVING DOCUMENT — update as bugs are found and fixed
 
 ## What This Feature Does
@@ -18,17 +18,17 @@ The board is the feedback mechanism.
 ## The Core Problem: Two Worlds That Must Talk
 
 ```
-  ┌─────────────────────┐          ┌──────────────────────┐
-  │   USER'S BROWSER    │          │   CODING AGENT       │
-  │   (real Chrome)     │          │   (Claude Code /     │
-  │                     │          │    Conductor)         │
-  │  Comparison board   │          │                      │
-  │  with buttons:      │   ???    │  Needs to know:      │
-  │  - Submit           │ ──────── │  - What was picked   │
-  │  - Regenerate       │          │  - Star ratings      │
-  │  - More like this   │          │  - Comments          │
-  │  - Remix            │          │  - Regen requested?  │
-  └─────────────────────┘          └──────────────────────┘
+ ┌─────────────────────┐ ┌──────────────────────┐
+ │ USER'S BROWSER │ │ CODING AGENT │
+ │ (real Chrome) │ │ (Claude Code / │
+ │ │ │ Conductor) │
+ │ Comparison board │ │ │
+ │ with buttons: │ ??? │ Needs to know: │
+ │ - Submit │ ──────── │ - What was picked │
+ │ - Regenerate │ │ - Star ratings │
+ │ - More like this │ │ - Comments │
+ │ - Remix │ │ - Regen requested? │
+ └─────────────────────┘ └──────────────────────┘
 ```
 
 The "???" is the hard part. The user clicks a button in Chrome. The agent running in
@@ -38,27 +38,27 @@ no shared memory, no shared event bus, no WebSocket connection.
 ## Architecture: How the Linkage Works
 
 ```
-  USER'S BROWSER                    $D serve (Bun HTTP)              AGENT
-  ═══════════════                   ═══════════════════              ═════
-       │                                   │                           │
-       │  GET /                            │                           │
-       │ ◄─────── serves board HTML ──────►│                           │
-       │    (with __GSTACK_SERVER_URL      │                           │
-       │     injected into <head>)         │                           │
-       │                                   │                           │
-       │  [user rates, picks, comments]    │                           │
-       │                                   │                           │
-       │  POST /api/feedback               │                           │
-       │ ─────── {preferred:"A",...} ─────►│                           │
-       │                                   │                           │
-       │  ◄── {received:true} ────────────│                           │
-       │                                   │── writes feedback.json ──►│
-       │  [inputs disabled,                │   (or feedback-pending    │
-       │   "Return to agent" shown]        │    .json for regen)       │
-       │                                   │                           │
-       │                                   │                  [agent polls
-       │                                   │                   every 5s,
-       │                                   │                   reads file]
+ USER'S BROWSER $D serve (Bun HTTP) AGENT
+ ═══════════════ ═══════════════════ ═════
+ │ │ │
+ │ GET / │ │
+ │ ◄─────── serves board HTML ──────►│ │
+ │ (with __OpenGStack_SERVER_URL │ │
+ │ injected into <head>) │ │
+ │ │ │
+ │ [user rates, picks, comments] │ │
+ │ │ │
+ │ POST /api/feedback │ │
+ │ ─────── {preferred:"A",...} ─────►│ │
+ │ │ │
+ │ ◄── {received:true} ────────────│ │
+ │ │── writes feedback.json ──►│
+ │ [inputs disabled, │ (or feedback-pending │
+ │ "Return to agent" shown] │ .json for regen) │
+ │ │ │
+ │ │ [agent polls
+ │ │ every 5s,
+ │ │ reads file]
 ```
 
 ### The Three Files
@@ -72,34 +72,34 @@ no shared memory, no shared event bus, no WebSocket connection.
 ### The State Machine
 
 ```
-  $D serve starts
-       │
-       ▼
-  ┌──────────┐
-  │ SERVING  │◄──────────────────────────────────────┐
-  │          │                                        │
-  │ Board is │  POST /api/feedback                    │
-  │ live,    │  {regenerated: true}                   │
-  │ waiting  │──────────────────►┌──────────────┐     │
-  │          │                   │ REGENERATING │     │
-  │          │                   │              │     │
-  └────┬─────┘                   │ Agent has    │     │
-       │                         │ 10 min to    │     │
-       │  POST /api/feedback     │ POST new     │     │
-       │  {regenerated: false}   │ board HTML   │     │
-       │                         └──────┬───────┘     │
-       ▼                                │             │
-  ┌──────────┐                POST /api/reload        │
-  │  DONE    │                {html: "/new/board"}    │
-  │          │                          │             │
-  │ exit 0   │                          ▼             │
-  └──────────┘                   ┌──────────────┐     │
-                                 │  RELOADING   │─────┘
-                                 │              │
-                                 │ Board auto-  │
-                                 │ refreshes    │
-                                 │ (same tab)   │
-                                 └──────────────┘
+ $D serve starts
+ │
+ ▼
+ ┌──────────┐
+ │ SERVING │◄──────────────────────────────────────┐
+ │ │ │
+ │ Board is │ POST /api/feedback │
+ │ live, │ {regenerated: true} │
+ │ waiting │──────────────────►┌──────────────┐ │
+ │ │ │ REGENERATING │ │
+ │ │ │ │ │
+ └────┬─────┘ │ Agent has │ │
+ │ │ 10 min to │ │
+ │ POST /api/feedback │ POST new │ │
+ │ {regenerated: false} │ board HTML │ │
+ │ └──────┬───────┘ │
+ ▼ │ │
+ ┌──────────┐ POST /api/reload │
+ │ DONE │ {html: "/new/board"} │
+ │ │ │ │
+ │ exit 0 │ ▼ │
+ └──────────┘ ┌──────────────┐ │
+ │ RELOADING │─────┘
+ │ │
+ │ Board auto- │
+ │ refreshes │
+ │ (same tab) │
+ └──────────────┘
 ```
 
 ### Port Discovery
@@ -212,7 +212,7 @@ There is no port file written to disk.
 **Potential fix:** Write a `serve.pid` or `serve.port` file next to the board HTML
 on startup. Agent can read it anytime:
 ```bash
-cat "$_DESIGN_DIR/serve.port"  # → 54321
+cat "$_DESIGN_DIR/serve.port" # → 54321
 ```
 
 ### 7. The Feedback File Cleanup Problem
@@ -290,13 +290,13 @@ proving it's writable). But a try/catch with a 500 response would be cleaner.
 2. $D serve starts Bun.serve() on random port (e.g. 54321)
 3. $D serve opens http://127.0.0.1:54321 in user's browser
 4. $D serve prints to stderr: SERVE_STARTED: port=54321 html=/path/board.html
-5. $D serve writes board HTML with injected __GSTACK_SERVER_URL
+5. $D serve writes board HTML with injected __OpenGStack_SERVER_URL
 6. User sees comparison board with 3 variants side by side
 7. User picks Option B, rates A: 3/5, B: 5/5, C: 2/5
 8. User writes "B has better spacing, go with that" in overall feedback
 9. User clicks Submit
 10. Board JS POSTs to http://127.0.0.1:54321/api/feedback
-    Body: {"preferred":"B","ratings":{"A":3,"B":5,"C":2},"overall":"B has better spacing","regenerated":false}
+ Body: {"preferred":"B","ratings":{"A":3,"B":5,"C":2},"overall":"B has better spacing","regenerated":false}
 11. Server writes feedback.json to disk (next to board.html)
 12. Server prints feedback JSON to stdout
 13. Server responds {received:true, action:"submitted"}
@@ -309,22 +309,22 @@ proving it's writable). But a try/catch with a 500 response would be cleaner.
 ### Regeneration Path: User Wants Different Options
 
 ```
-1-6.  Same as above
-7.  User clicks "Totally different" chiclet
-8.  User clicks Regenerate
-9.  Board JS POSTs to /api/feedback
-    Body: {"regenerated":true,"regenerateAction":"different","preferred":"","ratings":{},...}
+1-6. Same as above
+7. User clicks "Totally different" chiclet
+8. User clicks Regenerate
+9. Board JS POSTs to /api/feedback
+ Body: {"regenerated":true,"regenerateAction":"different","preferred":"","ratings":{},...}
 10. Server writes feedback-pending.json to disk
 11. Server state → "regenerating"
 12. Server responds {received:true, action:"regenerate"}
 13. Board shows spinner: "Generating new designs..."
 14. Board starts polling GET /api/progress every 2s
 
-    Meanwhile, in the agent:
+ Meanwhile, in the agent:
 15. Agent's polling loop finds feedback-pending.json
 16. Agent reads it, deletes it
 17. Agent runs: $D variants --brief "totally different direction" --count 3
-    (ONE AT A TIME, not parallel)
+ (ONE AT A TIME, not parallel)
 18. Agent runs: $D compare --images "new-A.png,new-B.png,new-C.png" --output board-v2.html
 19. Agent POSTs: curl -X POST http://127.0.0.1:54321/api/reload -d '{"html":"/path/board-v2.html"}'
 20. Server swaps htmlContent to new board
@@ -341,7 +341,7 @@ proving it's writable). But a try/catch with a 500 response would be cleaner.
 Same as regeneration, except:
 - regenerateAction is "more_like_B" (references the variant)
 - Agent uses $D iterate --image B.png --brief "more like this, keep the spacing"
-  instead of $D variants
+ instead of $D variants
 ```
 
 ### Fallback Path: $D serve Fails
@@ -350,7 +350,7 @@ Same as regeneration, except:
 1. Agent tries $D compare --serve, it fails (binary missing, port error, etc.)
 2. Agent falls back to: open file:///path/board.html
 3. Agent uses AskUserQuestion: "I've opened the design board. Which variant
-   do you prefer? Any feedback?"
+ do you prefer? Any feedback?"
 4. User responds in text
 5. Agent proceeds with text feedback (no structured JSON)
 ```
@@ -408,7 +408,7 @@ Same as regeneration, except:
 | Spinner after regenerate | DOM shows loading text | `feedback-roundtrip.test.ts` |
 | Full regen → reload → submit | 2-round trip | `feedback-roundtrip.test.ts` |
 | Server starts on random port | port 0 binding | `serve.test.ts` |
-| HTML injection of server URL | __GSTACK_SERVER_URL check | `serve.test.ts` |
+| HTML injection of server URL | __OpenGStack_SERVER_URL check | `serve.test.ts` |
 | Invalid JSON rejection | 400 response | `serve.test.ts` |
 | HTML file validation | exit 1 if missing | `serve.test.ts` |
 | Timeout behavior | exit 1 after timeout | `serve.test.ts` |

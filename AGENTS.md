@@ -1,10 +1,10 @@
-# OpenGStack — AI Engineering Workflow
+# opengstack — AI Engineering Workflow
 
-OpenGStack is a collection of SKILL.md files that give AI agents structured roles for
+opengstack is a collection of SKILL.md files that give AI agents structured roles for
 software development. Each skill is a specialist: CEO reviewer, eng manager,
 designer, QA lead, release engineer, debugger, and more.
 
-Forked from garrytan/gstack with telemetry removed.
+Forked from with telemetry removed.
 
 ## Available skills
 
@@ -44,4 +44,4 @@ This fork has all telemetry, analytics, and tracking removed. Your usage stays l
 
 ## Sync from Upstream
 
-This repo syncs daily from garrytan/gstack via GitHub Actions.
+This repo syncs daily from via GitHub Actions.

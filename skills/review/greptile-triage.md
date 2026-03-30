@@ -18,9 +18,9 @@ PR_NUMBER=$(gh pr view --json number --jq '.number' 2>/dev/null)
 ```bash
 # Fetch line-level review comments AND top-level PR comments in parallel
 gh api repos/$REPO/pulls/$PR_NUMBER/comments \
-  --jq '.[] | select(.user.login == "greptile-apps[bot]") | select(.position != null) | {id: .id, path: .path, line: .line, body: .body, html_url: .html_url, source: "line-level"}' > /tmp/greptile_line.json &
+ --jq '.[] | select(.user.login == "greptile-apps[bot]") | select(.position != null) | {id: .id, path: .path, line: .line, body: .body, html_url: .html_url, source: "line-level"}' > /tmp/greptile_line.json &
 gh api repos/$REPO/issues/$PR_NUMBER/comments \
-  --jq '.[] | select(.user.login == "greptile-apps[bot]") | {id: .id, body: .body, html_url: .html_url, source: "top-level"}' > /tmp/greptile_top.json &
+ --jq '.[] | select(.user.login == "greptile-apps[bot]") | {id: .id, body: .body, html_url: .html_url, source: "top-level"}' > /tmp/greptile_top.json &
 wait
 ```
 
@@ -34,8 +34,8 @@ The `position != null` filter on line-level comments automatically skips outdate
 
 Derive the project-specific history path:
 ```bash
-REMOTE_SLUG=$(browse/bin/remote-slug 2>/dev/null || ~/.claude/skills/gstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
-PROJECT_HISTORY="$HOME/.gstack/projects/$REMOTE_SLUG/greptile-history.md"
+REMOTE_SLUG=$(browse/bin/remote-slug 2>/dev/null || ~/.claude/skills/opengstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
+PROJECT_HISTORY="$HOME/.OpenGStack/projects/$REMOTE_SLUG/greptile-history.md"
 ```
 
 Read `$PROJECT_HISTORY` if it exists (per-project suppressions). Each line records a previous triage outcome:
@@ -66,10 +66,10 @@ For each non-suppressed comment:
 2. **Top-level comments:** Read the full comment body
 3. Cross-reference the comment against the full diff (`git diff origin/main`) and the review checklist
 4. Classify:
-   - **VALID & ACTIONABLE** — a real bug, race condition, security issue, or correctness problem that exists in the current code
-   - **VALID BUT ALREADY FIXED** — a real issue that was addressed in a subsequent commit on the branch. Identify the fixing commit SHA.
-   - **FALSE POSITIVE** — the comment misunderstands the code, flags something handled elsewhere, or is stylistic noise
-   - **SUPPRESSED** — already filtered in the suppressions check above
+ - **VALID & ACTIONABLE** — a real bug, race condition, security issue, or correctness problem that exists in the current code
+ - **VALID BUT ALREADY FIXED** — a real issue that was addressed in a subsequent commit on the branch. Identify the fixing commit SHA.
+ - **FALSE POSITIVE** — the comment misunderstands the code, flags something handled elsewhere, or is stylistic noise
+ - **SUPPRESSED** — already filtered in the suppressions check above
 
 ---
 
@@ -80,13 +80,13 @@ When replying to Greptile comments, use the correct endpoint based on comment so
 **Line-level comments** (from `pulls/$PR/comments`):
 ```bash
 gh api repos/$REPO/pulls/$PR_NUMBER/comments/$COMMENT_ID/replies \
-  -f body="<reply text>"
+ -f body="<reply text>"
 ```
 
 **Top-level comments** (from `issues/$PR/comments`):
 ```bash
 gh api repos/$REPO/issues/$PR_NUMBER/comments \
-  -f body="<reply text>"
+ -f body="<reply text>"
 ```
 
 **If a reply POST fails** (e.g., PR was closed, no write permission): warn and continue. Do not stop the workflow for a failed reply.
@@ -134,7 +134,7 @@ Use these templates for every Greptile reply. Always include concrete evidence �
 
 ### Tier 2 (Greptile re-flags after prior reply) — Firm, overwhelming evidence
 
-Use Tier 2 when escalation detection (below) identifies a prior GStack reply on the same thread. Include maximum evidence to close the discussion.
+Use Tier 2 when escalation detection (below) identifies a prior opengstack reply on the same thread. Include maximum evidence to close the discussion.
 
 ```
 **This has been reviewed and confirmed as [intentional/already-fixed/not-a-bug].**
@@ -155,15 +155,15 @@ Use Tier 2 when escalation detection (below) identifies a prior GStack reply on 
 
 ## Escalation Detection
 
-Before composing a reply, check if a prior GStack reply already exists on this comment thread:
+Before composing a reply, check if a prior opengstack reply already exists on this comment thread:
 
-1. **For line-level comments:** Fetch replies via `gh api repos/$REPO/pulls/$PR_NUMBER/comments/$COMMENT_ID/replies`. Check if any reply body contains GStack markers: `**Fixed**`, `**Not a bug.**`, `**Already fixed**`.
+1. **For line-level comments:** Fetch replies via `gh api repos/$REPO/pulls/$PR_NUMBER/comments/$COMMENT_ID/replies`. Check if any reply body contains opengstack markers: `**Fixed**`, `**Not a bug.**`, `**Already fixed**`.
 
-2. **For top-level comments:** Scan the fetched issue comments for replies posted after the Greptile comment that contain GStack markers.
+2. **For top-level comments:** Scan the fetched issue comments for replies posted after the Greptile comment that contain opengstack markers.
 
-3. **If a prior GStack reply exists AND Greptile posted again on the same file+category:** Use Tier 2 (firm) templates.
+3. **If a prior opengstack reply exists AND Greptile posted again on the same file+category:** Use Tier 2 (firm) templates.
 
-4. **If no prior GStack reply exists:** Use Tier 1 (friendly) templates.
+4. **If no prior opengstack reply exists:** Use Tier 1 (friendly) templates.
 
 If escalation detection fails (API error, ambiguous thread): default to Tier 1. Never escalate on ambiguity.
 
@@ -183,14 +183,14 @@ When classifying comments, also assess whether Greptile's implied severity match
 
 Before writing, ensure both directories exist:
 ```bash
-REMOTE_SLUG=$(browse/bin/remote-slug 2>/dev/null || ~/.claude/skills/gstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
-mkdir -p "$HOME/.gstack/projects/$REMOTE_SLUG"
-mkdir -p ~/.gstack
+REMOTE_SLUG=$(browse/bin/remote-slug 2>/dev/null || ~/.claude/skills/opengstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
+mkdir -p "$HOME/.OpenGStack/projects/$REMOTE_SLUG"
+mkdir -p ~/.opengstack
 ```
 
 Append one line per triage outcome to **both** files (per-project for suppressions, global for retro):
-- `~/.gstack/projects/$REMOTE_SLUG/greptile-history.md` (per-project)
-- `~/.gstack/greptile-history.md` (global aggregate)
+- `~/.opengstack/projects/$REMOTE_SLUG/greptile-history.md` (per-project)
+- `~/.opengstack/greptile-history.md` (global aggregate)
 
 Format:
 ```
@@ -199,9 +199,9 @@ Format:
 
 Example entries:
 ```
-2026-03-13 | garrytan/myapp | fp | app/services/auth_service.rb | race-condition
-2026-03-13 | garrytan/myapp | fix | app/models/user.rb | null-check
-2026-03-13 | garrytan/myapp | already-fixed | lib/payments.rb | error-handling
+2026-03-13 | | fp | app/services/auth_service.rb | race-condition
+2026-03-13 | | fix | app/models/user.rb | null-check
+2026-03-13 | | already-fixed | lib/payments.rb | error-handling
 ```
 
 ---

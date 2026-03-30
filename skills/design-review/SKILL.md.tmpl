@@ -3,22 +3,22 @@ name: design-review
 preamble-tier: 4
 version: 2.0.0
 description: |
-  Designer's eye QA: finds visual inconsistency, spacing issues, hierarchy problems,
-  AI slop patterns, and slow interactions — then fixes them. Iteratively fixes issues
-  in source code, committing each fix atomically and re-verifying with before/after
-  screenshots. For plan-mode design review (before implementation), use /plan-design-review.
-  Use when asked to "audit the design", "visual QA", "check if it looks good", or "design polish".
-  Proactively suggest when the user mentions visual inconsistencies or
-  wants to polish the look of a live site.
+ Designer's eye QA: finds visual inconsistency, spacing issues, hierarchy problems,
+ AI slop patterns, and slow interactions — then fixes them. Iteratively fixes issues
+ in source code, committing each fix atomically and re-verifying with before/after
+ screenshots. For plan-mode design review (before implementation), use /plan-design-review.
+ Use when asked to "audit the design", "visual QA", "check if it looks good", or "design polish".
+ Proactively suggest when the user mentions visual inconsistencies or
+ wants to polish the look of a live site. (OpenGStack)
 allowed-tools:
-  - Bash
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - AskUserQuestion
-  - WebSearch
+ - Bash
+ - Read
+ - Write
+ - Edit
+ - Glob
+ - Grep
+ - AskUserQuestion
+ - WebSearch
 ---
 
 {{PREAMBLE}}
@@ -45,7 +45,7 @@ You are a senior product designer AND a frontend engineer. Review live sites wit
 **CDP mode detection:** Check if browse is connected to the user's real browser:
 ```bash
 $B status 2>/dev/null | grep -q "Mode: cdp" && echo "CDP_MODE=true" || echo "CDP_MODE=false"
-
+```
 If `CDP_MODE=true`: skip cookie import steps — the real browser already has cookies and auth sessions. Skip headless detection workarounds.
 
 **Check for DESIGN.md:**
@@ -56,6 +56,7 @@ Look for `DESIGN.md`, `design-system.md`, or similar in the repo root. If found,
 
 ```bash
 git status --porcelain
+```
 
 If the output is non-empty (working tree is dirty), **STOP** and use AskUserQuestion:
 
@@ -77,7 +78,7 @@ After the user chooses, execute their choice (commit or stash), then continue wi
 
 {{TEST_BOOTSTRAP}}
 
-**Find the gstack designer (optional — enables target mockup generation):**
+**Find the opengstack designer (optional — enables target mockup generation):**
 
 {{DESIGN_SETUP}}
 
@@ -88,10 +89,11 @@ If `DESIGN_NOT_AVAILABLE`: skip mockup generation — the fix loop works without
 **Create output directories:**
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null)"
-REPORT_DIR=~/.gstack/projects/$SLUG/designs/design-audit-$(date +%Y%m%d)
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null)"
+REPORT_DIR=~/.opengstack/projects/$SLUG/designs/design-audit-$(date +%Y%m%d)
 mkdir -p "$REPORT_DIR/screenshots"
 echo "REPORT_DIR: $REPORT_DIR"
+```
 
 ---
 
@@ -107,20 +109,21 @@ Record baseline design score and AI slop score at end of Phase 6.
 
 ## Output Structure
 
-
-~/.gstack/projects/$SLUG/designs/design-audit-{YYYYMMDD}/
-├── design-audit-{domain}.md                  # Structured report
+```
+~/.opengstack/projects/$SLUG/designs/design-audit-{YYYYMMDD}/
+├── design-audit-{domain}.md # Structured report
 ├── screenshots/
-│   ├── first-impression.png                  # Phase 1
-│   ├── {page}-annotated.png                  # Per-page annotated
-│   ├── {page}-mobile.png                     # Responsive
-│   ├── {page}-tablet.png
-│   ├── {page}-desktop.png
-│   ├── finding-001-before.png                # Before fix
-│   ├── finding-001-target.png                # Target mockup (if generated)
-│   ├── finding-001-after.png                 # After fix
-│   └── ...
-└── design-baseline.json                      # For regression mode
+│ ├── first-impression.png # Phase 1
+│ ├── {page}-annotated.png # Per-page annotated
+│ ├── {page}-mobile.png # Responsive
+│ ├── {page}-tablet.png
+│ ├── {page}-desktop.png
+│ ├── finding-001-before.png # Before fix
+│ ├── finding-001-target.png # Target mockup (if generated)
+│ ├── finding-001-after.png # After fix
+│ └── ...
+└── design-baseline.json # For regression mode
+```
 
 ---
 
@@ -147,6 +150,7 @@ For each fixable finding, in impact order:
 ```bash
 # Search for CSS classes, component names, style files
 # Glob for file patterns matching the affected page
+```
 
 - Find the source file(s) responsible for the design issue
 - ONLY modify files directly related to the finding
@@ -154,10 +158,11 @@ For each fixable finding, in impact order:
 
 ### 8a.5. Target Mockup (if DESIGN_READY)
 
-If the gstack designer is available and the finding involves visual layout, hierarchy, or spacing (not just a CSS value fix like wrong color or font-size), generate a target mockup showing what the corrected version should look like:
+If the opengstack designer is available and the finding involves visual layout, hierarchy, or spacing (not just a CSS value fix like wrong color or font-size), generate a target mockup showing what the corrected version should look like:
 
 ```bash
 $D generate --brief "<description of the page/component with the finding fixed, referencing DESIGN.md constraints>" --output "$REPORT_DIR/screenshots/finding-NNN-target.png"
+```
 
 Show the user: "Here's the current state (screenshot) and here's what it should look like (mockup). Now I'll fix the source to match."
 
@@ -176,6 +181,7 @@ This step is optional — skip for trivial CSS fixes (wrong hex color, missing p
 ```bash
 git add <only-changed-files>
 git commit -m "style(design): FINDING-NNN — short description"
+```
 
 - One commit per fix. Never bundle multiple fixes.
 - Message format: `style(design): FINDING-NNN — short description`
@@ -189,6 +195,7 @@ $B goto <affected-url>
 $B screenshot "$REPORT_DIR/screenshots/finding-NNN-after.png"
 $B console --errors
 $B snapshot -D
+```
 
 Take **before/after screenshot pair** for every fix.
 
@@ -214,14 +221,15 @@ passes or defer if fails). Commit format: `test(design): regression test for FIN
 
 Every 5 fixes (or after any revert), compute the design-fix risk level:
 
-
+```
 DESIGN-FIX RISK:
-  Start at 0%
-  Each revert:                        +15%
-  Each CSS-only file change:          +0%   (safe — styling only)
-  Each JSX/TSX/component file change: +5%   per file
-  After fix 10:                       +1%   per additional fix
-  Touching unrelated files:           +20%
+ Start at 0%
+ Each revert: +15%
+ Each CSS-only file change: +0% (safe — styling only)
+ Each JSX/TSX/component file change: +5% per file
+ After fix 10: +1% per additional fix
+ Touching unrelated files: +20%
+```
 
 **If risk > 20%:** STOP immediately. Show the user what you've done so far. Ask whether to continue.
 
@@ -249,8 +257,8 @@ Write the report to `$REPORT_DIR` (already set up in the setup phase):
 **Also write a summary to the project index:**
 ```bash
 {{SLUG_SETUP}}
-
-Write a one-line summary to `~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md` with a pointer to the full report in `$REPORT_DIR`.
+```
+Write a one-line summary to `~/.opengstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md` with a pointer to the full report in `$REPORT_DIR`.
 
 **Per-finding additions** (beyond standard design audit report):
 - Fix Status: verified / best-effort / reverted / deferred

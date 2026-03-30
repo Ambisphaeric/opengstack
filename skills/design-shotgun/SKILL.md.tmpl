@@ -3,19 +3,19 @@ name: design-shotgun
 preamble-tier: 2
 version: 1.0.0
 description: |
-  Design shotgun: generate multiple AI design variants, open a comparison board,
-  collect structured feedback, and iterate. Standalone design exploration you can
-  run anytime. Use when: "explore designs", "show me options", "design variants",
-  "visual brainstorm", or "I don't like how this looks".
-  Proactively suggest when the user describes a UI feature but hasn't seen
-  what it could look like.
+ Design shotgun: generate multiple AI design variants, open a comparison board,
+ collect structured feedback, and iterate. Standalone design exploration you can
+ run anytime. Use when: "explore designs", "show me options", "design variants",
+ "visual brainstorm", or "I don't like how this looks".
+ Proactively suggest when the user describes a UI feature but hasn't seen
+ what it could look like. (OpenGStack)
 allowed-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
-  - Agent
-  - AskUserQuestion
+ - Bash
+ - Read
+ - Glob
+ - Grep
+ - Agent
+ - AskUserQuestion
 ---
 
 {{PREAMBLE}}
@@ -33,11 +33,12 @@ visual brainstorming, not a review process.
 Check for prior design exploration sessions for this project:
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null)"
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null)"
 setopt +o nomatch 2>/dev/null || true
-_PREV=$(find ~/.gstack/projects/$SLUG/designs/ -name "approved.json" -maxdepth 2 2>/dev/null | sort -r | head -5)
+_PREV=$(find ~/.opengstack/projects/$SLUG/designs/ -name "approved.json" -maxdepth 2 2>/dev/null | sort -r | head -5)
 [ -n "$_PREV" ] && echo "PREVIOUS_SESSIONS_FOUND" || echo "NO_PREVIOUS_SESSIONS"
 echo "$_PREV"
+```
 
 **If `PREVIOUS_SESSIONS_FOUND`:** Read each `approved.json`, display a summary, then
 AskUserQuestion:
@@ -78,11 +79,16 @@ When run standalone, gather context to build a proper design brief.
 
 ```bash
 cat DESIGN.md 2>/dev/null | head -80 || echo "NO_DESIGN_MD"
-bash
+```
+
+```bash
 ls src/ app/ pages/ components/ 2>/dev/null | head -30
-bash
+```
+
+```bash
 setopt +o nomatch 2>/dev/null || true
-ls ~/.gstack/projects/$SLUG/*office-hours* 2>/dev/null | head -5
+ls ~/.opengstack/projects/$SLUG/*office-hours* 2>/dev/null | head -5
+```
 
 If DESIGN.md exists, tell the user: "I'll follow your design system in DESIGN.md by
 default. If you want to go off the reservation on visual direction, just say so —
@@ -92,6 +98,7 @@ design-shotgun will follow your lead, but won't diverge by default."
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null || echo "NO_LOCAL_SITE"
+```
 
 If a local site is running AND the user referenced a URL or said something like "I don't
 like how this looks," screenshot the current page and use `$D evolve` instead of
@@ -113,7 +120,8 @@ Read prior approved designs to bias generation toward the user's demonstrated ta
 
 ```bash
 setopt +o nomatch 2>/dev/null || true
-_TASTE=$(find ~/.gstack/projects/$SLUG/designs/ -name "approved.json" -maxdepth 2 2>/dev/null | sort -r | head -10)
+_TASTE=$(find ~/.opengstack/projects/$SLUG/designs/ -name "approved.json" -maxdepth 2 2>/dev/null | sort -r | head -10)
+```
 
 If prior sessions exist, read each `approved.json` and extract patterns from the
 approved variants. Include a taste summary in the design brief:
@@ -129,10 +137,11 @@ Limit to last 10 sessions. Try/catch JSON parse on each (skip corrupted files).
 Set up the output directory:
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null)"
-_DESIGN_DIR=~/.gstack/projects/$SLUG/designs/<screen-name>-$(date +%Y%m%d)
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null)"
+_DESIGN_DIR=~/.opengstack/projects/$SLUG/designs/<screen-name>-$(date +%Y%m%d)
 mkdir -p "$_DESIGN_DIR"
 echo "DESIGN_DIR: $_DESIGN_DIR"
+```
 
 Replace `<screen-name>` with a descriptive kebab-case name from the context gathering.
 
@@ -142,12 +151,13 @@ Before any API calls, generate N text concepts describing each variant's design 
 Each concept should be a distinct creative direction, not a minor variation. Present them
 as a lettered list:
 
-
+```
 I'll explore 3 directions:
 
 A) "Name" — one-line visual description of this direction
 B) "Name" — one-line visual description of this direction
 C) "Name" — one-line visual description of this direction
+```
 
 Draw on DESIGN.md, taste memory, and the user's request to make each concept distinct.
 
@@ -175,6 +185,7 @@ first:
 
 ```bash
 $B screenshot "$_DESIGN_DIR/current.png"
+```
 
 **Launch N Agent subagents in a single message** (parallel execution). Use the Agent
 tool with `subagent_type: "general-purpose"` for each variant. Each agent is independent
@@ -186,7 +197,7 @@ variable that agents do NOT inherit. Substitute the resolved absolute path (from
 
 **Agent prompt template** (one per variant, substitute all `{...}` values):
 
-
+```
 Generate a design variant and save it.
 
 Design binary: {absolute path to $D binary}
@@ -197,22 +208,24 @@ Final location: {_DESIGN_DIR absolute path}/variant-{letter}.png
 Steps:
 1. Run: {$D path} generate --brief "{brief}" --output /tmp/variant-{letter}.png
 2. If the command fails with a rate limit error (429 or "rate limit"), wait 5 seconds
-   and retry. Up to 3 retries.
+ and retry. Up to 3 retries.
 3. If the output file is missing or empty after the command succeeds, retry once.
 4. Copy: cp /tmp/variant-{letter}.png {_DESIGN_DIR}/variant-{letter}.png
 5. Quality check: {$D path} check --image {_DESIGN_DIR}/variant-{letter}.png --brief "{brief}"
-   If quality check fails, retry generation once.
+ If quality check fails, retry generation once.
 6. Verify: ls -lh {_DESIGN_DIR}/variant-{letter}.png
 7. Report exactly one of:
-   VARIANT_{letter}_DONE: {file size}
-   VARIANT_{letter}_FAILED: {error description}
-   VARIANT_{letter}_RATE_LIMITED: exhausted retries
+ VARIANT_{letter}_DONE: {file size}
+ VARIANT_{letter}_FAILED: {error description}
+ VARIANT_{letter}_RATE_LIMITED: exhausted retries
+```
 
 For the evolve path, replace step 1 with:
-
+```
 {$D path} evolve --screenshot {_DESIGN_DIR}/current.png --brief "{brief}" --output /tmp/variant-{letter}.png
+```
 
-**Why /tmp/ then cp?** In observed sessions, `$D generate --output ~/.gstack/...`
+**Why /tmp/ then cp?** In observed sessions, `$D generate --output ~/.opengstack/...`
 failed with "The operation was aborted" while `--output /tmp/...` succeeded. This is
 a sandbox restriction. Always generate to `/tmp/` first, then `cp`.
 
@@ -222,19 +235,20 @@ After all agents complete:
 
 1. Read each generated PNG inline (Read tool) so the user sees all variants at once.
 2. Report status: "All {N} variants generated in ~{actual time}. {successes} succeeded,
-   {failures} failed."
+ {failures} failed."
 3. For any failures: report explicitly with the error. Do NOT silently skip.
 4. If zero variants succeeded: fall back to sequential generation (one at a time with
-   `$D generate`, showing each as it lands). Tell the user: "Parallel generation failed
-   (likely rate limiting). Falling back to sequential..."
+ `$D generate`, showing each as it lands). Tell the user: "Parallel generation failed
+ (likely rate limiting). Falling back to sequential..."
 5. Proceed to Step 4 (comparison board).
 
 **Dynamic image list for comparison board:** When proceeding to Step 4, construct the
 image list from whatever variant files actually exist, not a hardcoded A/B/C list:
 
 ```bash
-setopt +o nomatch 2>/dev/null || true  # zsh compat
+setopt +o nomatch 2>/dev/null || true # zsh compat
 _IMAGES=$(ls "$_DESIGN_DIR"/variant-*.png 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+```
 
 Use `$_IMAGES` in the `$D compare --images` command.
 
@@ -269,16 +283,16 @@ If standalone, offer next steps via AskUserQuestion:
 
 > "Design direction locked in. What's next?
 > A) Iterate more — refine the approved variant with specific feedback
-> B) Implement — start building from this design
+> B) Finalize — generate production Pretext-native HTML/CSS with /design-html
 > C) Save to plan — add this as an approved mockup reference in the current plan
 > D) Done — I'll use this later"
 
 ## Important Rules
 
 1. **Never save to `.context/`, `docs/designs/`, or `/tmp/`.** All design artifacts go
-   to `~/.gstack/projects/$SLUG/designs/`. This is enforced. See DESIGN_SETUP above.
+ to `~/.opengstack/projects/$SLUG/designs/`. This is enforced. See DESIGN_SETUP above.
 2. **Show variants inline before opening the board.** The user should see designs
-   immediately in their terminal. The browser board is for detailed feedback.
+ immediately in their terminal. The browser board is for detailed feedback.
 3. **Confirm feedback before saving.** Always summarize what you understood and verify.
 4. **Taste memory is automatic.** Prior approved designs inform new generations by default.
 5. **Two rounds max on context gathering.** Don't over-interrogate. Proceed with assumptions.

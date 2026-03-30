@@ -6,10 +6,10 @@
 
 This checklist applies to **source code in the diff** — not rendered output. Read each changed frontend file (full file, not just diff hunks) and flag anti-patterns.
 
-**Trigger:** Only run this checklist if the diff touches frontend files. Use `gstack-diff-scope` to detect:
+**Trigger:** Only run this checklist if the diff touches frontend files. Use `opengstack-diff-scope` to detect:
 
 ```bash
-source <(~/.claude/skills/gstack/bin/gstack-diff-scope <base> 2>/dev/null)
+source <(~/.claude/skills/opengstack/bin/opengstack-diff-scope <base> 2>/dev/null)
 ```
 
 If `SCOPE_FRONTEND=false`, skip the entire design review silently.
@@ -52,7 +52,7 @@ Design Review: N issues (X auto-fixable, Y need input, Z possible)
 
 **NEEDS INPUT:**
 - [file:line] Problem description
-  Recommended fix: suggested fix
+ Recommended fix: suggested fix
 
 **POSSIBLE (verify visually):**
 - [file:line] Possible issue — verify with /design-review

@@ -3,30 +3,28 @@
 
 ## Preamble (run first)
 
-
-If `PROACTIVE` is `"false"`, do not proactively suggest gstack skills AND do not
+If `PROACTIVE` is `"false"`, do not proactively suggest opengstack skills AND do not
 auto-invoke skills based on conversation context. Only run skills the user explicitly
 types (e.g., /qa, /ship). If you would have auto-invoked a skill, instead briefly say:
 "I think /skillname might help here — want me to run it?" and wait for confirmation.
 The user opted out of proactive behavior.
 
 If `SKILL_PREFIX` is `"true"`, the user has namespaced skill names. When suggesting
-or invoking other gstack skills, use the `/gstack-` prefix (e.g., `/gstack-qa` instead
-of `/qa`, `/gstack-ship` instead of `/ship`). Disk paths are unaffected — always use
+or invoking other opengstack skills, use the `/opengstack-` prefix (e.g., `/opengstack-qa` instead
+of `/qa`, `/opengstack-ship` instead of `/ship`). Disk paths are unaffected — always use
 `~/.claude/skills/opengstack/[skill-name]/SKILL.md` for reading skill files.
 
 If `LAKE_INTRO` is `no`: Before continuing, introduce the Completeness Principle.
 Then offer to open the essay in their default browser:
 
 ```bash
-touch ~/.gstack/.completeness-intro-seen
+touch ~/.opengstack/.completeness-intro-seen
 
 Only run `open` if the user says yes. Always run `touch` to mark as seen. This only happens once.
 
-If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: After telemetry is handled,
 ask the user about proactive behavior. Use AskUserQuestion:
 
-> gstack can proactively figure out when you might need a skill while you work —
+> opengstack can proactively figure out when you might need a skill while you work —
 > like suggesting /qa when you say "does this work?" or /investigate when you hit
 > a bug. We recommend keeping this on — it speeds up every part of your workflow.
 
@@ -39,7 +37,7 @@ If B: run `echo set proactive false`
 
 Always run:
 ```bash
-touch ~/.gstack/.proactive-prompted
+touch ~/.opengstack/.proactive-prompted
 
 This only happens once. If `PROACTIVE_PROMPTED` is `yes`, skip this entirely.
 
@@ -77,30 +75,29 @@ RECOMMENDATION:
 
 Replace `SKILL_NAME` with the actual skill name from frontmatter, `OUTCOME` with
 success/error/abort, and `USED_BROWSE` with true/false based on whether `$B` was used.
-If you cannot determine the outcome, use "unknown". The local JSONL always logs. The
-remote binary only runs if telemetry is not off and the binary exists.
+If you cannot determine the outcome, use "unknown".
 
 ## Plan Status Footer
 
 When you are in plan mode and about to call ExitPlanMode:
 
-1. Check if the plan file already has a `## GSTACK REVIEW REPORT` section.
+1. Check if the plan file already has a `## opengstack REVIEW REPORT` section.
 2. If it DOES — skip (a review skill already wrote a richer report).
 3. If it does NOT — run this command:
 
 \`\`\`bash
-~/.claude/skills/opengstack/bin/gstack-review-read
+~/.claude/skills/opengstack/bin/opengstack-review-read
 \`\`\`
 
-Then write a `## GSTACK REVIEW REPORT` section to the end of the plan file:
+Then write a `## opengstack REVIEW REPORT` section to the end of the plan file:
 
 - If the output contains review entries (JSONL lines before `---CONFIG---`): format the
-  standard report table with runs/status/findings per skill, same format as the review
-  skills use.
+ standard report table with runs/status/findings per skill, same format as the review
+ skills use.
 - If the output is `NO_REVIEWS` or empty: write this placeholder table:
 
 \`\`\`markdown
-## GSTACK REVIEW REPORT
+## opengstack REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
@@ -121,23 +118,23 @@ plan's living status.
 ```bash
 _ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 B=""
-[ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/gstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/gstack/browse/dist/browse"
+[ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/opengstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/opengstack/browse/dist/browse"
 [ -z "$B" ] && B=~/.claude/skills/opengstack/browse/dist/browse
 if [ -x "$B" ]; then
-  echo "READY: $B"
+ echo "READY: $B"
 else
-  echo "NEEDS_SETUP"
+ echo "NEEDS_SETUP"
 fi
 
 If `NEEDS_SETUP`:
-1. Tell the user: "gstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
+1. Tell the user: "opengstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
 2. Run: `cd <SKILL_DIR> && ./setup`
 3. If `bun` is not installed:
-   ```bash
-   if ! command -v bun >/dev/null 2>&1; then
-     curl -fsSL https://bun.sh/install | BUN_VERSION=1.3.10 bash
-   fi
-   ```
+ ```bash
+ if ! command -v bun >/dev/null 2>&1; then
+ curl -fsSL https://bun.sh/install | BUN_VERSION=1.3.10 bash
+ fi
+ ```
 
 # /benchmark — Performance Regression Detection
 
@@ -161,9 +158,9 @@ When the user types `/benchmark`, run this skill.
 ### Phase 1: Setup
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null || echo "SLUG=unknown")"
-mkdir -p .gstack/benchmark-reports
-mkdir -p .gstack/benchmark-reports/baselines
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null || echo "SLUG=unknown")"
+mkdir -p .OpenGStack/benchmark-reports
+mkdir -p .OpenGStack/benchmark-reports/baselines
 
 ### Phase 2: Page Discovery
 
@@ -213,35 +210,34 @@ Save metrics to baseline file:
 
 ```json
 {
-  "url": "<url>",
-  "timestamp": "<ISO>",
-  "branch": "<branch>",
-  "pages": {
-    "/": {
-      "ttfb_ms": 120,
-      "fcp_ms": 450,
-      "lcp_ms": 800,
-      "dom_interactive_ms": 600,
-      "dom_complete_ms": 1200,
-      "full_load_ms": 1400,
-      "total_requests": 42,
-      "total_transfer_bytes": 1250000,
-      "js_bundle_bytes": 450000,
-      "css_bundle_bytes": 85000,
-      "largest_resources": [
-        {"name": "main.js", "size": 320000, "duration": 180},
-        {"name": "vendor.js", "size": 130000, "duration": 90}
-      ]
-    }
-  }
+ "url": "<url>",
+ "timestamp": "<ISO>",
+ "branch": "<branch>",
+ "pages": {
+ "/": {
+ "ttfb_ms": 120,
+ "fcp_ms": 450,
+ "lcp_ms": 800,
+ "dom_interactive_ms": 600,
+ "dom_complete_ms": 1200,
+ "full_load_ms": 1400,
+ "total_requests": 42,
+ "total_transfer_bytes": 1250000,
+ "js_bundle_bytes": 450000,
+ "css_bundle_bytes": 85000,
+ "largest_resources": [
+ {"name": "main.js", "size": 320000, "duration": 180},
+ {"name": "vendor.js", "size": 130000, "duration": 90}
+ ]
+ }
+ }
 }
 
-Write to `.gstack/benchmark-reports/baselines/baseline.json`.
+Write to `.OpenGStack/benchmark-reports/baselines/baseline.json`.
 
 ### Phase 5: Comparison
 
 If baseline exists, compare current metrics against it:
-
 
 PERFORMANCE REPORT —
 ══════════════════════════
@@ -249,23 +245,23 @@ Branch: [current-branch] vs baseline ([baseline-branch])
 
 Page: /
 ─────────────────────────────────────────────────────
-Metric              Baseline    Current     Delta    Status
-────────            ────────    ───────     ─────    ──────
-TTFB                120ms       135ms       +15ms    OK
-FCP                 450ms       480ms       +30ms    OK
-LCP                 800ms       1600ms      +800ms   REGRESSION
-DOM Interactive     600ms       650ms       +50ms    OK
-DOM Complete        1200ms      1350ms      +150ms   WARNING
-Full Load           1400ms      2100ms      +700ms   REGRESSION
-Total Requests      42          58          +16      WARNING
-Transfer Size       1.2MB       1.8MB       +0.6MB   REGRESSION
-JS Bundle           450KB       720KB       +270KB   REGRESSION
-CSS Bundle          85KB        88KB        +3KB     OK
+Metric Baseline Current Delta Status
+──────── ──────── ─────── ───── ──────
+TTFB 120ms 135ms +15ms OK
+FCP 450ms 480ms +30ms OK
+LCP 800ms 1600ms +800ms REGRESSION
+DOM Interactive 600ms 650ms +50ms OK
+DOM Complete 1200ms 1350ms +150ms WARNING
+Full Load 1400ms 2100ms +700ms REGRESSION
+Total Requests 42 58 +16 WARNING
+Transfer Size 1.2MB 1.8MB +0.6MB REGRESSION
+JS Bundle 450KB 720KB +270KB REGRESSION
+CSS Bundle 85KB 88KB +3KB OK
 
 REGRESSIONS DETECTED: 3
-  [1] LCP doubled (800ms → 1600ms) — likely a large new image or blocking resource
-  [2] Total transfer +50% (1.2MB → 1.8MB) — check new JS bundles
-  [3] JS bundle +60% (450KB → 720KB) — new dependency or missing tree-shaking
+ [1] LCP doubled (800ms → 1600ms) — likely a large new image or blocking resource
+ [2] Total transfer +50% (1.2MB → 1.8MB) — check new JS bundles
+ [3] JS bundle +60% (450KB → 720KB) — new dependency or missing tree-shaking
 
 **Regression thresholds:**
 - Timing metrics: >50% increase OR >500ms absolute increase = REGRESSION
@@ -276,15 +272,14 @@ REGRESSIONS DETECTED: 3
 
 ### Phase 6: Slowest Resources
 
-
 TOP 10 SLOWEST RESOURCES
 ═════════════════════════
-#   Resource                  Type      Size      Duration
-1   vendor.chunk.js          script    320KB     480ms
-2   main.js                  script    250KB     320ms
-3   hero-image.webp          img       180KB     280ms
-4   analytics.js             script    45KB      250ms    ← third-party
-5   fonts/inter-var.woff2    font      95KB      180ms
+# Resource Type Size Duration
+1 vendor.chunk.js script 320KB 480ms
+2 main.js script 250KB 320ms
+3 hero-image.webp img 180KB 280ms
+4 analytics.js script 45KB 250ms ← third-party
+5 fonts/inter-var.woff2 font 95KB 180ms
 ...
 
 RECOMMENDATIONS:
@@ -296,17 +291,16 @@ RECOMMENDATIONS:
 
 Check against industry budgets:
 
-
 PERFORMANCE BUDGET CHECK
 ════════════════════════
-Metric              Budget      Actual      Status
-────────            ──────      ──────      ──────
-FCP                 < 1.8s      0.48s       PASS
-LCP                 < 2.5s      1.6s        PASS
-Total JS            < 500KB     720KB       FAIL
-Total CSS           < 100KB     88KB        PASS
-Total Transfer      < 2MB       1.8MB       WARNING (90%)
-HTTP Requests       < 50        58          FAIL
+Metric Budget Actual Status
+──────── ────── ────── ──────
+FCP < 1.8s 0.48s PASS
+LCP < 2.5s 1.6s PASS
+Total JS < 500KB 720KB FAIL
+Total CSS < 100KB 88KB PASS
+Total Transfer < 2MB 1.8MB WARNING (90%)
+HTTP Requests < 50 58 FAIL
 
 Grade: B (4/6 passing)
 
@@ -314,22 +308,21 @@ Grade: B (4/6 passing)
 
 Load historical baseline files and show trends:
 
-
 PERFORMANCE TRENDS (last 5 benchmarks)
 ══════════════════════════════════════
-Date        FCP     LCP     Bundle    Requests    Grade
-2026-03-10  420ms   750ms   380KB     38          A
-2026-03-12  440ms   780ms   410KB     40          A
-2026-03-14  450ms   800ms   450KB     42          A
-2026-03-16  460ms   850ms   520KB     48          B
-2026-03-18  480ms   1600ms  720KB     58          B
+Date FCP LCP Bundle Requests Grade
+2026-03-10 420ms 750ms 380KB 38 A
+2026-03-12 440ms 780ms 410KB 40 A
+2026-03-14 450ms 800ms 450KB 42 A
+2026-03-16 460ms 850ms 520KB 48 B
+2026-03-18 480ms 1600ms 720KB 58 B
 
 TREND: Performance degrading. LCP doubled in 8 days.
-       JS bundle growing 50KB/week. Investigate.
+ JS bundle growing 50KB/week. Investigate.
 
 ### Phase 9: Save Report
 
-Write to `.gstack/benchmark-reports/{date}-benchmark.md` and `.gstack/benchmark-reports/{date}-benchmark.json`.
+Write to `.OpenGStack/benchmark-reports/{date}-benchmark.md` and `.OpenGStack/benchmark-reports/{date}-benchmark.json`.
 
 ## Important Rules
 

@@ -2,16 +2,16 @@
 
 ## Problem
 
-When Claude controls your real browser via CDP (gstack `$B connect`), you look at two
+When Claude controls your real browser via CDP (opengstack `$B connect`), you look at two
 windows: **Conductor** (to see Claude's thinking) and **Chrome** (to see Claude's actions).
 
-gstack's Chrome extension Side Panel shows browse activity — every command, result,
+OpenGStack's Chrome extension Side Panel shows browse activity — every command, result,
 and error. But for *full* session mirroring (Claude's thinking, tool calls, code edits),
 the Side Panel needs Conductor to expose the conversation stream.
 
 ## What this enables
 
-A "Session" tab in the gstack Chrome extension Side Panel that shows:
+A "Session" tab in the opengstack Chrome extension Side Panel that shows:
 - Claude's thinking/content (truncated for performance)
 - Tool call names + icons (Edit, Bash, Read, etc.)
 - Turn boundaries with cost estimates
@@ -51,16 +51,16 @@ Discovery endpoint listing active workspaces.
 
 ```json
 {
-  "workspaces": [
-    {
-      "id": "abc123",
-      "name": "gstack",
-      "branch": "garrytan/chrome-extension-ctrl",
-      "directory": "/Users/garry/gstack",
-      "pid": 12345,
-      "active": true
-    }
-  ]
+ "workspaces": [
+ {
+ "id": "abc123",
+ "name": "opengstack",
+ "branch": "
+ "directory": "~/opengstack",
+ "pid": 12345,
+ "active": true
+ }
+ ]
 }
 ```
 
@@ -71,11 +71,11 @@ The Chrome extension auto-selects a workspace by matching the browse server's gi
 
 - **Localhost-only.** Same trust model as Claude Code's own debug output.
 - **No auth required.** If Conductor wants auth, include a Bearer token in the
-  workspace listing that the extension passes on SSE requests.
+ workspace listing that the extension passes on SSE requests.
 - **Content truncation** is a privacy feature — long code outputs, file contents, and
-  sensitive tool results never leave Conductor's full UI.
+ sensitive tool results never leave Conductor's full UI.
 
-## What gstack builds (extension side)
+## What opengstack builds (extension side)
 
 Already scaffolded in the Side Panel "Session" tab (currently shows placeholder).
 

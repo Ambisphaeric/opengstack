@@ -3,23 +3,23 @@ name: qa
 preamble-tier: 4
 version: 2.0.0
 description: |
-  Systematically QA test a web application and fix bugs found. Runs QA testing,
-  then iteratively fixes bugs in source code, committing each fix atomically and
-  re-verifying. Use when asked to "qa", "QA", "test this site", "find bugs",
-  "test and fix", or "fix what's broken".
-  Proactively suggest when the user says a feature is ready for testing
-  or asks "does this work?". Three tiers: Quick (critical/high only),
-  Standard (+ medium), Exhaustive (+ cosmetic). Produces before/after health scores,
-  fix evidence, and a ship-readiness summary. For report-only mode, use /qa-only.
+ Systematically QA test a web application and fix bugs found. Runs QA testing,
+ then iteratively fixes bugs in source code, committing each fix atomically and
+ re-verifying. Use when asked to "qa", "QA", "test this site", "find bugs",
+ "test and fix", or "fix what's broken".
+ Proactively suggest when the user says a feature is ready for testing
+ or asks "does this work?". Three tiers: Quick (critical/high only),
+ Standard (+ medium), Exhaustive (+ cosmetic). Produces before/after health scores,
+ fix evidence, and a ship-readiness summary. For report-only mode, use /qa-only. (OpenGStack)
 allowed-tools:
-  - Bash
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - AskUserQuestion
-  - WebSearch
+ - Bash
+ - Read
+ - Write
+ - Edit
+ - Glob
+ - Grep
+ - AskUserQuestion
+ - WebSearch
 ---
 
 {{PREAMBLE}}
@@ -38,8 +38,8 @@ You are a QA engineer AND a bug-fix engineer. Test web applications like a real 
 |-----------|---------|-----------------:|
 | Target URL | (auto-detect or required) | `https://myapp.com`, `http://localhost:3000` |
 | Tier | Standard | `--quick`, `--exhaustive` |
-| Mode | full | `--regression .gstack/qa-reports/baseline.json` |
-| Output dir | `.gstack/qa-reports/` | `Output to /tmp/qa` |
+| Mode | full | `--regression .OpenGStack/qa-reports/baseline.json` |
+| Output dir | `.OpenGStack/qa-reports/` | `Output to /tmp/qa` |
 | Scope | Full app (or diff-scoped) | `Focus on the billing page` |
 | Auth | None | `Sign in to user@example.com`, `Import cookies from cookies.json` |
 
@@ -53,13 +53,14 @@ You are a QA engineer AND a bug-fix engineer. Test web applications like a real 
 **CDP mode detection:** Before starting, check if the browse server is connected to the user's real browser:
 ```bash
 $B status 2>/dev/null | grep -q "Mode: cdp" && echo "CDP_MODE=true" || echo "CDP_MODE=false"
-
+```
 If `CDP_MODE=true`: skip cookie import prompts (the real browser already has cookies), skip user-agent overrides (real browser has real user-agent), and skip headless detection workarounds. The user's real auth sessions are already available.
 
 **Check for clean working tree:**
 
 ```bash
 git status --porcelain
+```
 
 If the output is non-empty (working tree is dirty), **STOP** and use AskUserQuestion:
 
@@ -84,7 +85,8 @@ After the user chooses, execute their choice (commit or stash), then continue wi
 **Create output directories:**
 
 ```bash
-mkdir -p .gstack/qa-reports/screenshots
+mkdir -p .OpenGStack/qa-reports/screenshots
+```
 
 ---
 
@@ -92,12 +94,12 @@ mkdir -p .gstack/qa-reports/screenshots
 
 Before falling back to git diff heuristics, check for richer test plan sources:
 
-1. **Project-scoped test plans:** Check `~/.gstack/projects/` for recent `*-test-plan-*.md` files for this repo
-   ```bash
-   setopt +o nomatch 2>/dev/null || true  # zsh compat
-   {{SLUG_EVAL}}
-   ls -t ~/.gstack/projects/$SLUG/*-test-plan-*.md 2>/dev/null | head -1
-   ```
+1. **Project-scoped test plans:** Check `~/.opengstack/projects/` for recent `*-test-plan-*.md` files for this repo
+ ```bash
+ setopt +o nomatch 2>/dev/null || true # zsh compat
+ {{SLUG_EVAL}}
+ ls -t ~/.opengstack/projects/$SLUG/*-test-plan-*.md 2>/dev/null | head -1
+ ```
 2. **Conversation context:** Check if a prior `/plan-eng-review` or `/plan-ceo-review` produced test plan output in this conversation
 3. **Use whichever source is richer.** Fall back to git diff analysis only if neither is available.
 
@@ -113,17 +115,18 @@ Record baseline health score at end of Phase 6.
 
 ## Output Structure
 
-
-.gstack/qa-reports/
-├── qa-report-{domain}-{YYYY-MM-DD}.md    # Structured report
+```
+.OpenGStack/qa-reports/
+├── qa-report-{domain}-{YYYY-MM-DD}.md # Structured report
 ├── screenshots/
-│   ├── initial.png                        # Landing page annotated screenshot
-│   ├── issue-001-step-1.png               # Per-issue evidence
-│   ├── issue-001-result.png
-│   ├── issue-001-before.png               # Before fix (if fixed)
-│   ├── issue-001-after.png                # After fix (if fixed)
-│   └── ...
-└── baseline.json                          # For regression mode
+│ ├── initial.png # Landing page annotated screenshot
+│ ├── issue-001-step-1.png # Per-issue evidence
+│ ├── issue-001-result.png
+│ ├── issue-001-before.png # Before fix (if fixed)
+│ ├── issue-001-after.png # After fix (if fixed)
+│ └── ...
+└── baseline.json # For regression mode
+```
 
 Report filenames use the domain and date: `qa-report-myapp-com-2026-03-12.md`
 
@@ -150,6 +153,7 @@ For each fixable issue, in severity order:
 ```bash
 # Grep for error messages, component names, route definitions
 # Glob for file patterns matching the affected page
+```
 
 - Find the source file(s) responsible for the bug
 - ONLY modify files directly related to the issue
@@ -165,6 +169,7 @@ For each fixable issue, in severity order:
 ```bash
 git add <only-changed-files>
 git commit -m "fix(qa): ISSUE-NNN — short description"
+```
 
 - One commit per fix. Never bundle multiple fixes.
 - Message format: `fix(qa): ISSUE-NNN — short description`
@@ -181,6 +186,7 @@ $B goto <affected-url>
 $B screenshot "$REPORT_DIR/screenshots/issue-NNN-after.png"
 $B console --errors
 $B snapshot -D
+```
 
 ### 8e. Classify
 
@@ -212,11 +218,11 @@ The test MUST:
 - Assert the correct behavior (NOT "it renders" or "it doesn't throw")
 - If you found adjacent edge cases while tracing, test those too (e.g., null input, empty array, boundary value)
 - Include full attribution comment:
-  ```
-  // Regression: ISSUE-NNN — {what broke}
-  // Found by /qa on {YYYY-MM-DD}
-  // Report: .gstack/qa-reports/qa-report-{domain}-{date}.md
-  ```
+ ```
+ // Regression: ISSUE-NNN — {what broke}
+ // Found by /qa on {YYYY-MM-DD}
+ // Report: .OpenGStack/qa-reports/qa-report-{domain}-{date}.md
+ ```
 
 Test type decision:
 - Console error / JS exception / logic bug → unit or integration test
@@ -232,6 +238,7 @@ Use auto-incrementing names to avoid collisions: check existing `{name}.regressi
 
 ```bash
 {detected test command} {new-test-file}
+```
 
 **4. Evaluate:**
 - Passes → commit: `git commit -m "test(qa): regression test for ISSUE-NNN — {desc}"`
@@ -244,14 +251,15 @@ Use auto-incrementing names to avoid collisions: check existing `{name}.regressi
 
 Every 5 fixes (or after any revert), compute the WTF-likelihood:
 
-
+```
 WTF-LIKELIHOOD:
-  Start at 0%
-  Each revert:                +15%
-  Each fix touching >3 files: +5%
-  After fix 15:               +1% per additional fix
-  All remaining Low severity: +10%
-  Touching unrelated files:   +20%
+ Start at 0%
+ Each revert: +15%
+ Each fix touching >3 files: +5%
+ After fix 15: +1% per additional fix
+ All remaining Low severity: +10%
+ Touching unrelated files: +20%
+```
 
 **If WTF > 20%:** STOP immediately. Show the user what you've done so far. Ask whether to continue.
 
@@ -273,13 +281,13 @@ After all fixes are applied:
 
 Write the report to both local and project-scoped locations:
 
-**Local:** `.gstack/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
+**Local:** `.OpenGStack/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
 
 **Project-scoped:** Write test outcome artifact for cross-session context:
 ```bash
 {{SLUG_SETUP}}
-
-Write to `~/.gstack/projects/{slug}/{user}-{branch}-test-outcome-{datetime}.md`
+```
+Write to `~/.opengstack/projects/{slug}/{user}-{branch}-test-outcome-{datetime}.md`
 
 **Per-issue additions** (beyond standard report template):
 - Fix Status: verified / best-effort / reverted / deferred

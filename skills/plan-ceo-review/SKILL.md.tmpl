@@ -3,22 +3,22 @@ name: plan-ceo-review
 preamble-tier: 3
 version: 1.0.0
 description: |
-  CEO/founder-mode plan review. Rethink the problem, find the 10-star product,
-  challenge premises, expand scope when it creates a better product. Four modes:
-  SCOPE EXPANSION (dream big), SELECTIVE EXPANSION (hold scope + cherry-pick
-  expansions), HOLD SCOPE (maximum rigor), SCOPE REDUCTION (strip to essentials).
-  Use when asked to "think bigger", "expand scope", "strategy review", "rethink this",
-  or "is this ambitious enough".
-  Proactively suggest when the user is questioning scope or ambition of a plan,
-  or when the plan feels like it could be thinking bigger.
+ CEO/founder-mode plan review. Rethink the problem, find the 10-star product,
+ challenge premises, expand scope when it creates a better product. Four modes:
+ SCOPE EXPANSION (dream big), SELECTIVE EXPANSION (hold scope + cherry-pick
+ expansions), HOLD SCOPE (maximum rigor), SCOPE REDUCTION (strip to essentials).
+ Use when asked to "think bigger", "expand scope", "strategy review", "rethink this",
+ or "is this ambitious enough".
+ Proactively suggest when the user is questioning scope or ambition of a plan,
+ or when the plan feels like it could be thinking bigger. (OpenGStack)
 benefits-from: [office-hours]
 allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - AskUserQuestion
-  - WebSearch
+ - Read
+ - Grep
+ - Glob
+ - Bash
+ - AskUserQuestion
+ - WebSearch
 ---
 
 {{PREAMBLE}}
@@ -94,32 +94,32 @@ Never skip Step 0, the system audit, the error/rescue map, or the failure modes 
 ## PRE-REVIEW SYSTEM AUDIT (before Step 0)
 Before doing anything else, run a system audit. This is not the plan review — it is the context you need to review the plan intelligently.
 Run the following commands:
-
-git log --oneline -30                          # Recent history
-git diff <base> --stat                           # What's already changed
-git stash list                                 # Any stashed work
+```
+git log --oneline -30 # Recent history
+git diff <base> --stat # What's already changed
+git stash list # Any stashed work
 grep -r "TODO\|FIXME\|HACK\|XXX" -l --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=.git . | head -30
-git log --since=30.days --name-only --format="" | sort | uniq -c | sort -rn | head -20  # Recently touched files
-
+git log --since=30.days --name-only --format="" | sort | uniq -c | sort -rn | head -20 # Recently touched files
+```
 Then read CLAUDE.md, TODOS.md, and any existing architecture docs.
 
 **Design doc check:**
 ```bash
-setopt +o nomatch 2>/dev/null || true  # zsh compat
+setopt +o nomatch 2>/dev/null || true # zsh compat
 SLUG=$(~/.claude/skills/opengstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
-DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
-[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
+DESIGN=$(ls -t ~/.opengstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
+[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.opengstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
 [ -n "$DESIGN" ] && echo "Design doc found: $DESIGN" || echo "No design doc found"
-
+```
 If a design doc exists (from `/office-hours`), read it. Use it as the source of truth for the problem statement, constraints, and chosen approach. If it has a `Supersedes:` field, note that this is a revised design.
 
 **Handoff note check** (reuses $SLUG and $BRANCH from the design doc check above):
 ```bash
-setopt +o nomatch 2>/dev/null || true  # zsh compat
-HANDOFF=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null | head -1)
+setopt +o nomatch 2>/dev/null || true # zsh compat
+HANDOFF=$(ls -t ~/.opengstack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null | head -1)
 [ -n "$HANDOFF" ] && echo "HANDOFF_FOUND: $HANDOFF" || echo "NO_HANDOFF"
-
+```
 If this block runs in a separate shell from the design doc check, recompute $SLUG and $BRANCH first using the same commands from that block.
 If a handoff note is found: read it. This contains system audit findings and discussion
 from a prior CEO review session that paused so the user could run `/office-hours`. Use it
@@ -143,12 +143,9 @@ sure," or is clearly exploring rather than reviewing — offer `/office-hours`:
 Options: A) Yes, run /office-hours now. B) No, keep going.
 If they keep going, proceed normally — no guilt, no re-asking.
 
-If they choose A: Read the office-hours skill file from disk:
-`~/.claude/skills/opengstack/office-hours/SKILL.md`
+If they choose A:
 
-Follow it inline, skipping these sections (already handled by parent skill):
-Preamble, AskUserQuestion Format, Completeness Principle, Search Before Building,
-Contributor Mode, Completion Status Protocol, Telemetry.
+{{INVOKE_SKILL:office-hours}}
 
 Note current Step 0A progress so you don't re-ask questions already answered.
 After completion, re-run the design doc check and resume the review.
@@ -191,6 +188,8 @@ Run the three-layer synthesis:
 
 Feed into the Premise Challenge (0A) and Dream State Mapping (0C). If you find a eureka moment, surface it during the Expansion opt-in ceremony as a differentiation opportunity. Log it (see preamble).
 
+{{LEARNINGS_SEARCH}}
+
 ## Step 0: Nuclear Scope Challenge + Mode Selection
 
 ### 0A. Premise Challenge
@@ -204,29 +203,31 @@ Feed into the Premise Challenge (0A) and Dream State Mapping (0C). If you find a
 
 ### 0C. Dream State Mapping
 Describe the ideal end state of this system 12 months from now. Does this plan move toward that state or away from it?
-
-  CURRENT STATE                  THIS PLAN                  12-MONTH IDEAL
-  [describe]          --->       [describe delta]    --->    [describe target]
+```
+ CURRENT STATE THIS PLAN 12-MONTH IDEAL
+ [describe] ---> [describe delta] ---> [describe target]
+```
 
 ### 0C-bis. Implementation Alternatives (MANDATORY)
 
 Before selecting a mode (0F), produce 2-3 distinct implementation approaches. This is NOT optional — every plan must consider alternatives.
 
 For each approach:
-
+```
 APPROACH A: [Name]
-  Summary: [1-2 sentences]
-  Effort:  [S/M/L/XL]
-  Risk:    [Low/Med/High]
-  Pros:    [2-3 bullets]
-  Cons:    [2-3 bullets]
-  Reuses:  [existing code/patterns leveraged]
+ Summary: [1-2 sentences]
+ Effort: [S/M/L/XL]
+ Risk: [Low/Med/High]
+ Pros: [2-3 bullets]
+ Cons: [2-3 bullets]
+ Reuses: [existing code/patterns leveraged]
 
 APPROACH B: [Name]
-  ...
+ ...
 
 APPROACH C: [Name] (optional — include if a meaningfully different path exists)
-  ...
+ ...
+```
 
 **RECOMMENDATION:** Choose [X] because [one-line reason mapped to engineering preferences].
 
@@ -248,9 +249,9 @@ Rules:
 1. Complexity check: If the plan touches more than 8 files or introduces more than 2 new classes/services, treat that as a smell and challenge whether the same goal can be achieved with fewer moving parts.
 2. What is the minimum set of changes that achieves the stated goal? Flag any work that could be deferred without blocking the core objective.
 3. Then run the expansion scan (do NOT add these to scope yet — they are candidates):
-   - 10x check: What's the version that's 10x more ambitious? Describe it concretely.
-   - Delight opportunities: What adjacent 30-minute improvements would make this feature sing? List at least 5.
-   - Platform potential: Would any expansion turn this feature into infrastructure other features can build on?
+ - 10x check: What's the version that's 10x more ambitious? Describe it concretely.
+ - Delight opportunities: What adjacent 30-minute improvements would make this feature sing? List at least 5.
+ - Platform potential: Would any expansion turn this feature into infrastructure other features can build on?
 4. **Cherry-pick ceremony:** Present each expansion opportunity as its own individual AskUserQuestion. Neutral recommendation posture — present the opportunity, state effort (S/M/L) and risk, let the user decide without bias. Options: **A)** Add to this plan's scope **B)** Defer to TODOS.md **C)** Skip. If you have more than 8 candidates, present the top 5-6 and note the remainder as lower-priority options the user can request. Accepted items become plan scope for all remaining review sections. Rejected items go to "NOT in scope."
 
 **For HOLD SCOPE** — run this:
@@ -266,15 +267,17 @@ Rules:
 After the opt-in/cherry-pick ceremony, write the plan to disk so the vision and decisions survive beyond this conversation. Only run this step for EXPANSION and SELECTIVE EXPANSION modes.
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG/ceo-plans
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null)" && mkdir -p ~/.opengstack/projects/$SLUG/ceo-plans
+```
 
 Before writing, check for existing CEO plans in the ceo-plans/ directory. If any are >30 days old or their branch has been merged/deleted, offer to archive them:
 
 ```bash
-mkdir -p ~/.gstack/projects/$SLUG/ceo-plans/archive
-# For each stale plan: mv ~/.gstack/projects/$SLUG/ceo-plans/{old-plan}.md ~/.gstack/projects/$SLUG/ceo-plans/archive/
+mkdir -p ~/.opengstack/projects/$SLUG/ceo-plans/archive
+# For each stale plan: mv ~/.opengstack/projects/$SLUG/ceo-plans/{old-plan}.md ~/.opengstack/projects/$SLUG/ceo-plans/archive/
+```
 
-Write to `~/.gstack/projects/$SLUG/ceo-plans/{date}-{feature-slug}.md` using this format:
+Write to `~/.opengstack/projects/$SLUG/ceo-plans/{date}-{feature-slug}.md` using this format:
 
 ```markdown
 ---
@@ -304,6 +307,7 @@ Repo: {owner/repo}
 
 ## Deferred to TODOS.md
 - {items with context}
+```
 
 Derive the feature slug from the plan being reviewed (e.g., "user-dashboard", "auth-refactor"). Use the date in YYYY-MM-DD format.
 
@@ -313,13 +317,13 @@ After writing the CEO plan, run the spec review loop on it:
 
 ### 0E. Temporal Interrogation (EXPANSION, SELECTIVE EXPANSION, and HOLD modes)
 Think ahead to implementation: What decisions will need to be made during implementation that should be resolved NOW in the plan?
-
-  HOUR 1 (foundations):     What does the implementer need to know?
-  HOUR 2-3 (core logic):   What ambiguities will they hit?
-  HOUR 4-5 (integration):  What will surprise them?
-  HOUR 6+ (polish/tests):  What will they wish they'd planned for?
-
-NOTE: These represent human-team implementation hours. With CC + gstack,
+```
+ HOUR 1 (foundations): What does the implementer need to know?
+ HOUR 2-3 (core logic): What ambiguities will they hit?
+ HOUR 4-5 (integration): What will surprise them?
+ HOUR 6+ (polish/tests): What will they wish they'd planned for?
+```
+NOTE: These represent human-team implementation hours. With CC + OpenGStack,
 6 hours of human implementation compresses to ~30-60 minutes. The decisions
 are identical — the implementation speed is 10-20x faster. Always present
 both scales when discussing effort.
@@ -355,10 +359,10 @@ Once selected, commit fully. Do not silently drift.
 Evaluate and diagram:
 * Overall system design and component boundaries. Draw the dependency graph.
 * Data flow — all four paths. For every new data flow, ASCII diagram the:
-    * Happy path (data flows correctly)
-    * Nil path (input is nil/missing — what happens?)
-    * Empty path (input is present but empty/zero-length — what happens?)
-    * Error path (upstream call fails — what happens?)
+ * Happy path (data flows correctly)
+ * Nil path (input is nil/missing — what happens?)
+ * Empty path (input is present but empty/zero-length — what happens?)
+ * Error path (upstream call fails — what happens?)
 * State machines. ASCII diagram for every new stateful object. Include impossible/invalid transitions and what prevents them.
 * Coupling concerns. Which components are now coupled that weren't before? Is that coupling justified? Draw the before/after dependency graph.
 * Scaling characteristics. What breaks first under 10x load? Under 100x?
@@ -379,24 +383,24 @@ Required ASCII diagram: full system architecture showing new components and thei
 ### Section 2: Error & Rescue Map
 This is the section that catches silent failures. It is not optional.
 For every new method, service, or codepath that can fail, fill in this table:
+```
+ METHOD/CODEPATH | WHAT CAN GO WRONG | EXCEPTION CLASS
+ -------------------------|-----------------------------|-----------------
+ ExampleService#call | API timeout | TimeoutError
+ | API returns 429 | RateLimitError
+ | API returns malformed JSON | JSONParseError
+ | DB connection pool exhausted| ConnectionPoolExhausted
+ | Record not found | RecordNotFound
+ -------------------------|-----------------------------|-----------------
 
-  METHOD/CODEPATH          | WHAT CAN GO WRONG           | EXCEPTION CLASS
-  -------------------------|-----------------------------|-----------------
-  ExampleService#call      | API timeout                 | TimeoutError
-                           | API returns 429             | RateLimitError
-                           | API returns malformed JSON  | JSONParseError
-                           | DB connection pool exhausted| ConnectionPoolExhausted
-                           | Record not found            | RecordNotFound
-  -------------------------|-----------------------------|-----------------
-
-  EXCEPTION CLASS              | RESCUED?  | RESCUE ACTION          | USER SEES
-  -----------------------------|-----------|------------------------|------------------
-  TimeoutError                 | Y         | Retry 2x, then raise   | "Service temporarily unavailable"
-  RateLimitError               | Y         | Backoff + retry         | Nothing (transparent)
-  JSONParseError               | N ← GAP   | —                      | 500 error ← BAD
-  ConnectionPoolExhausted      | N ← GAP   | —                      | 500 error ← BAD
-  RecordNotFound               | Y         | Return nil, log warning | "Not found" message
-
+ EXCEPTION CLASS | RESCUED? | RESCUE ACTION | USER SEES
+ -----------------------------|-----------|------------------------|------------------
+ TimeoutError | Y | Retry 2x, then raise | "Service temporarily unavailable"
+ RateLimitError | Y | Backoff + retry | Nothing (transparent)
+ JSONParseError | N ← GAP | — | 500 error ← BAD
+ ConnectionPoolExhausted | N ← GAP | — | 500 error ← BAD
+ RecordNotFound | Y | Return nil, log warning | "Not found" message
+```
 Rules for this section:
 * Catch-all error handling (`rescue StandardError`, `catch (Exception e)`, `except Exception`) is ALWAYS a smell. Name the specific exceptions.
 * Catching an error with only a generic log message is insufficient. Log the full context: what was being attempted, with what arguments, for what user/request.
@@ -424,35 +428,35 @@ For each finding: threat, likelihood (High/Med/Low), impact (High/Med/Low), and 
 This section traces data through the system and interactions through the UI with adversarial thoroughness.
 
 **Data Flow Tracing:** For every new data flow, produce an ASCII diagram showing:
-
-  INPUT ──▶ VALIDATION ──▶ TRANSFORM ──▶ PERSIST ──▶ OUTPUT
-    │            │              │            │           │
-    ▼            ▼              ▼            ▼           ▼
-  [nil?]    [invalid?]    [exception?]  [conflict?]  [stale?]
-  [empty?]  [too long?]   [timeout?]    [dup key?]   [partial?]
-  [wrong    [wrong type?] [OOM?]        [locked?]    [encoding?]
-   type?]
-
+```
+ INPUT ──▶ VALIDATION ──▶ TRANSFORM ──▶ PERSIST ──▶ OUTPUT
+ │ │ │ │ │
+ ▼ ▼ ▼ ▼ ▼
+ [nil?] [invalid?] [exception?] [conflict?] [stale?]
+ [empty?] [too long?] [timeout?] [dup key?] [partial?]
+ [wrong [wrong type?] [OOM?] [locked?] [encoding?]
+ type?]
+```
 For each node: what happens on each shadow path? Is it tested?
 
 **Interaction Edge Cases:** For every new user-visible interaction, evaluate:
-
-  INTERACTION          | EDGE CASE              | HANDLED? | HOW?
-  ---------------------|------------------------|----------|--------
-  Form submission      | Double-click submit    | ?        |
-                       | Submit with stale CSRF | ?        |
-                       | Submit during deploy   | ?        |
-  Async operation      | User navigates away    | ?        |
-                       | Operation times out    | ?        |
-                       | Retry while in-flight  | ?        |
-  List/table view      | Zero results           | ?        |
-                       | 10,000 results         | ?        |
-                       | Results change mid-page| ?        |
-  Background job       | Job fails after 3 of   | ?        |
-                       | 10 items processed     |          |
-                       | Job runs twice (dup)   | ?        |
-                       | Queue backs up 2 hours | ?        |
-
+```
+ INTERACTION | EDGE CASE | HANDLED? | HOW?
+ ---------------------|------------------------|----------|--------
+ Form submission | Double-click submit | ? |
+ | Submit with stale CSRF | ? |
+ | Submit during deploy | ? |
+ Async operation | User navigates away | ? |
+ | Operation times out | ? |
+ | Retry while in-flight | ? |
+ List/table view | Zero results | ? |
+ | 10,000 results | ? |
+ | Results change mid-page| ? |
+ Background job | Job fails after 3 of | ? |
+ | 10 items processed | |
+ | Job runs twice (dup) | ? |
+ | Queue backs up 2 hours | ? |
+```
 Flag any unhandled edge case as a gap. For each gap, specify the fix.
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY. If no issues or fix is obvious, state what you'll do and move on — don't waste a question. Do NOT proceed until user responds.
 
@@ -470,25 +474,25 @@ Evaluate:
 
 ### Section 6: Test Review
 Make a complete diagram of every new thing this plan introduces:
+```
+ NEW UX FLOWS:
+ [list each new user-visible interaction]
 
-  NEW UX FLOWS:
-    [list each new user-visible interaction]
+ NEW DATA FLOWS:
+ [list each new path data takes through the system]
 
-  NEW DATA FLOWS:
-    [list each new path data takes through the system]
+ NEW CODEPATHS:
+ [list each new branch, condition, or execution path]
 
-  NEW CODEPATHS:
-    [list each new branch, condition, or execution path]
+ NEW BACKGROUND JOBS / ASYNC WORK:
+ [list each]
 
-  NEW BACKGROUND JOBS / ASYNC WORK:
-    [list each]
+ NEW INTEGRATIONS / EXTERNAL CALLS:
+ [list each]
 
-  NEW INTEGRATIONS / EXTERNAL CALLS:
-    [list each]
-
-  NEW ERROR/RESCUE PATHS:
-    [list each — cross-reference Section 2]
-
+ NEW ERROR/RESCUE PATHS:
+ [list each — cross-reference Section 2]
+```
 For each item in the diagram:
 * What type of test covers it? (Unit / Integration / System / E2E)
 * Does a test for it exist in the plan? If not, write the test spec header.
@@ -571,7 +575,7 @@ The CEO calling in the designer. Not a pixel-level audit — that's /plan-design
 Evaluate:
 * Information architecture — what does the user see first, second, third?
 * Interaction state coverage map:
-  FEATURE | LOADING | EMPTY | ERROR | SUCCESS | PARTIAL
+ FEATURE | LOADING | EMPTY | ERROR | SUCCESS | PARTIAL
 * User journey coherence — storyboard the emotional arc
 * AI slop risk — does the plan describe generic UI patterns?
 * DESIGN.md alignment — does the plan match the stated design system?
@@ -625,10 +629,10 @@ Where this plan leaves us relative to the 12-month ideal.
 Complete table of every method that can fail, every exception class, rescued status, rescue action, user impact.
 
 ### Failure Modes Registry
-
-  CODEPATH | FAILURE MODE   | RESCUED? | TEST? | USER SEES?     | LOGGED?
-  ---------|----------------|----------|-------|----------------|--------
-
+```
+ CODEPATH | FAILURE MODE | RESCUED? | TEST? | USER SEES? | LOGGED?
+ ---------|----------------|----------|-------|----------------|--------
+```
 Any row with RESCUED=N, TEST=N, USER SEES=Silent → **CRITICAL GAP**.
 
 ### TODOS.md updates
@@ -640,7 +644,7 @@ For each TODO, describe:
 * **Pros:** What you gain by doing this work.
 * **Cons:** Cost, complexity, or risks of doing it.
 * **Context:** Enough detail that someone picking this up in 3 months understands the motivation, the current state, and where to start.
-* **Effort estimate:** S/M/L/XL (human team) → with CC+gstack: S→S, M→S, L→M, XL→L
+* **Effort estimate:** S/M/L/XL (human team) → with CC+OpenGStack: S→S, M→S, L→M, XL→L
 * **Priority:** P1/P2/P3
 * **Depends on / blocked by:** Any prerequisites or ordering constraints.
 
@@ -664,39 +668,40 @@ For EXPANSION and SELECTIVE EXPANSION modes: expansion opportunities and delight
 List every ASCII diagram in files this plan touches. Still accurate?
 
 ### Completion Summary
-
-  +====================================================================+
-  |            MEGA PLAN REVIEW — COMPLETION SUMMARY                   |
-  +====================================================================+
-  | Mode selected        | EXPANSION / SELECTIVE / HOLD / REDUCTION     |
-  | System Audit         | [key findings]                              |
-  | Step 0               | [mode + key decisions]                      |
-  | Section 1  (Arch)    | ___ issues found                            |
-  | Section 2  (Errors)  | ___ error paths mapped, ___ GAPS            |
-  | Section 3  (Security)| ___ issues found, ___ High severity         |
-  | Section 4  (Data/UX) | ___ edge cases mapped, ___ unhandled        |
-  | Section 5  (Quality) | ___ issues found                            |
-  | Section 6  (Tests)   | Diagram produced, ___ gaps                  |
-  | Section 7  (Perf)    | ___ issues found                            |
-  | Section 8  (Observ)  | ___ gaps found                              |
-  | Section 9  (Deploy)  | ___ risks flagged                           |
-  | Section 10 (Future)  | Reversibility: _/5, debt items: ___         |
-  | Section 11 (Design)  | ___ issues / SKIPPED (no UI scope)          |
-  +--------------------------------------------------------------------+
-  | NOT in scope         | written (___ items)                          |
-  | What already exists  | written                                     |
-  | Dream state delta    | written                                     |
-  | Error/rescue registry| ___ methods, ___ CRITICAL GAPS              |
-  | Failure modes        | ___ total, ___ CRITICAL GAPS                |
-  | TODOS.md updates     | ___ items proposed                          |
-  | Scope proposals      | ___ proposed, ___ accepted (EXP + SEL)      |
-  | CEO plan             | written / skipped (HOLD/REDUCTION)           |
-  | Outside voice        | ran (codex/claude) / skipped                 |
-  | Lake Score           | X/Y recommendations chose complete option   |
-  | Diagrams produced    | ___ (list types)                            |
-  | Stale diagrams found | ___                                         |
-  | Unresolved decisions | ___ (listed below)                          |
-  +====================================================================+
+```
+ +====================================================================+
+ | MEGA PLAN REVIEW — COMPLETION SUMMARY |
+ +====================================================================+
+ | Mode selected | EXPANSION / SELECTIVE / HOLD / REDUCTION |
+ | System Audit | [key findings] |
+ | Step 0 | [mode + key decisions] |
+ | Section 1 (Arch) | ___ issues found |
+ | Section 2 (Errors) | ___ error paths mapped, ___ GAPS |
+ | Section 3 (Security)| ___ issues found, ___ High severity |
+ | Section 4 (Data/UX) | ___ edge cases mapped, ___ unhandled |
+ | Section 5 (Quality) | ___ issues found |
+ | Section 6 (Tests) | Diagram produced, ___ gaps |
+ | Section 7 (Perf) | ___ issues found |
+ | Section 8 (Observ) | ___ gaps found |
+ | Section 9 (Deploy) | ___ risks flagged |
+ | Section 10 (Future) | Reversibility: _/5, debt items: ___ |
+ | Section 11 (Design) | ___ issues / SKIPPED (no UI scope) |
+ +--------------------------------------------------------------------+
+ | NOT in scope | written (___ items) |
+ | What already exists | written |
+ | Dream state delta | written |
+ | Error/rescue registry| ___ methods, ___ CRITICAL GAPS |
+ | Failure modes | ___ total, ___ CRITICAL GAPS |
+ | TODOS.md updates | ___ items proposed |
+ | Scope proposals | ___ proposed, ___ accepted (EXP + SEL) |
+ | CEO plan | written / skipped (HOLD/REDUCTION) |
+ | Outside voice | ran (codex/claude) / skipped |
+ | Lake Score | X/Y recommendations chose complete option |
+ | Diagrams produced | ___ (list types) |
+ | Stale diagrams found | ___ |
+ | Unresolved decisions | ___ (listed below) |
+ +====================================================================+
+```
 
 ### Unresolved Decisions
 If any AskUserQuestion goes unanswered, note it here. Never silently default.
@@ -707,22 +712,23 @@ After producing the Completion Summary, clean up any handoff notes for this bran
 the review is complete and the context is no longer needed.
 
 ```bash
-setopt +o nomatch 2>/dev/null || true  # zsh compat
+setopt +o nomatch 2>/dev/null || true # zsh compat
 {{SLUG_EVAL}}
-rm -f ~/.gstack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null || true
+rm -f ~/.opengstack/projects/$SLUG/*-$BRANCH-ceo-handoff-*.md 2>/dev/null || true
+```
 
 ## Review Log
 
 After producing the Completion Summary above, persist the review result.
 
 **PLAN MODE EXCEPTION — ALWAYS RUN:** This command writes review metadata to
-`~/.gstack/` (user config directory, not project files). The skill preamble
-already writes to `~/.gstack/sessions/` and `~/.gstack/analytics/` — this is
+`~/.opengstack/` (user config directory, not project files). The skill preamble
 the same pattern. The review dashboard depends on this data. Skipping this
 command breaks the review readiness dashboard in /ship.
 
 ```bash
-~/.claude/skills/opengstack/bin/gstack-review-log '{"skill":"plan-ceo-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"mode":"MODE","scope_proposed":N,"scope_accepted":N,"scope_deferred":N,"commit":"COMMIT"}'
+~/.claude/skills/opengstack/bin/opengstack-review-log '{"skill":"plan-ceo-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"mode":"MODE","scope_proposed":N,"scope_accepted":N,"scope_deferred":N,"commit":"COMMIT"}'
+```
 
 Before running this command, substitute the placeholder values from the Completion Summary you just produced:
 - **TIMESTAMP**: current ISO 8601 datetime (e.g., 2026-03-16T14:30:00)
@@ -760,7 +766,7 @@ At the end of the review, if the vision produced a compelling feature direction,
 
 "The vision from this review produced {N} accepted scope expansions. Want to promote it to a design doc in the repo?"
 - **A)** Promote to `docs/designs/{FEATURE}.md` (committed to repo, visible to the team)
-- **B)** Keep in `~/.gstack/projects/` only (local, personal reference)
+- **B)** Keep in `~/.opengstack/projects/` only (local, personal reference)
 - **C)** Skip
 
 If promoted, copy the CEO plan content to `docs/designs/{FEATURE}.md` (create the directory if needed) and update the `status` field in the original CEO plan from `ACTIVE` to `PROMOTED`.
@@ -773,39 +779,40 @@ If promoted, copy the CEO plan content to `docs/designs/{FEATURE}.md` (create th
 * Use **CRITICAL GAP** / **WARNING** / **OK** for scannability.
 
 ## Mode Quick Reference
-
-  ┌────────────────────────────────────────────────────────────────────────────────┐
-  │                            MODE COMPARISON                                     │
-  ├─────────────┬──────────────┬──────────────┬──────────────┬────────────────────┤
-  │             │  EXPANSION   │  SELECTIVE   │  HOLD SCOPE  │  REDUCTION         │
-  ├─────────────┼──────────────┼──────────────┼──────────────┼────────────────────┤
-  │ Scope       │ Push UP      │ Hold + offer │ Maintain     │ Push DOWN          │
-  │             │ (opt-in)     │              │              │                    │
-  │ Recommend   │ Enthusiastic │ Neutral      │ N/A          │ N/A                │
-  │ posture     │              │              │              │                    │
-  │ 10x check   │ Mandatory    │ Surface as   │ Optional     │ Skip               │
-  │             │              │ cherry-pick  │              │                    │
-  │ Platonic    │ Yes          │ No           │ No           │ No                 │
-  │ ideal       │              │              │              │                    │
-  │ Delight     │ Opt-in       │ Cherry-pick  │ Note if seen │ Skip               │
-  │ opps        │ ceremony     │ ceremony     │              │                    │
-  │ Complexity  │ "Is it big   │ "Is it right │ "Is it too   │ "Is it the bare    │
-  │ question    │  enough?"    │  + what else │  complex?"   │  minimum?"         │
-  │             │              │  is tempting"│              │                    │
-  │ Taste       │ Yes          │ Yes          │ No           │ No                 │
-  │ calibration │              │              │              │                    │
-  │ Temporal    │ Full (hr 1-6)│ Full (hr 1-6)│ Key decisions│ Skip               │
-  │ interrogate │              │              │  only        │                    │
-  │ Observ.     │ "Joy to      │ "Joy to      │ "Can we      │ "Can we see if     │
-  │ standard    │  operate"    │  operate"    │  debug it?"  │  it's broken?"     │
-  │ Deploy      │ Infra as     │ Safe deploy  │ Safe deploy  │ Simplest possible  │
-  │ standard    │ feature scope│ + cherry-pick│  + rollback  │  deploy            │
-  │             │              │  risk check  │              │                    │
-  │ Error map   │ Full + chaos │ Full + chaos │ Full         │ Critical paths     │
-  │             │  scenarios   │ for accepted │              │  only              │
-  │ CEO plan    │ Written      │ Written      │ Skipped      │ Skipped            │
-  │ Phase 2/3   │ Map accepted │ Map accepted │ Note it      │ Skip               │
-  │ planning    │              │ cherry-picks │              │                    │
-  │ Design      │ "Inevitable" │ If UI scope  │ If UI scope  │ Skip               │
-  │ (Sec 11)    │  UI review   │  detected    │  detected    │                    │
-  └─────────────┴──────────────┴──────────────┴──────────────┴────────────────────┘
+```
+ ┌────────────────────────────────────────────────────────────────────────────────┐
+ │ MODE COMPARISON │
+ ├─────────────┬──────────────┬──────────────┬──────────────┬────────────────────┤
+ │ │ EXPANSION │ SELECTIVE │ HOLD SCOPE │ REDUCTION │
+ ├─────────────┼──────────────┼──────────────┼──────────────┼────────────────────┤
+ │ Scope │ Push UP │ Hold + offer │ Maintain │ Push DOWN │
+ │ │ (opt-in) │ │ │ │
+ │ Recommend │ Enthusiastic │ Neutral │ N/A │ N/A │
+ │ posture │ │ │ │ │
+ │ 10x check │ Mandatory │ Surface as │ Optional │ Skip │
+ │ │ │ cherry-pick │ │ │
+ │ Platonic │ Yes │ No │ No │ No │
+ │ ideal │ │ │ │ │
+ │ Delight │ Opt-in │ Cherry-pick │ Note if seen │ Skip │
+ │ opps │ ceremony │ ceremony │ │ │
+ │ Complexity │ "Is it big │ "Is it right │ "Is it too │ "Is it the bare │
+ │ question │ enough?" │ + what else │ complex?" │ minimum?" │
+ │ │ │ is tempting"│ │ │
+ │ Taste │ Yes │ Yes │ No │ No │
+ │ calibration │ │ │ │ │
+ │ Temporal │ Full (hr 1-6)│ Full (hr 1-6)│ Key decisions│ Skip │
+ │ interrogate │ │ │ only │ │
+ │ Observ. │ "Joy to │ "Joy to │ "Can we │ "Can we see if │
+ │ standard │ operate" │ operate" │ debug it?" │ it's broken?" │
+ │ Deploy │ Infra as │ Safe deploy │ Safe deploy │ Simplest possible │
+ │ standard │ feature scope│ + cherry-pick│ + rollback │ deploy │
+ │ │ │ risk check │ │ │
+ │ Error map │ Full + chaos │ Full + chaos │ Full │ Critical paths │
+ │ │ scenarios │ for accepted │ │ only │
+ │ CEO plan │ Written │ Written │ Skipped │ Skipped │
+ │ Phase 2/3 │ Map accepted │ Map accepted │ Note it │ Skip │
+ │ planning │ │ cherry-picks │ │ │
+ │ Design │ "Inevitable" │ If UI scope │ If UI scope │ Skip │
+ │ (Sec 11) │ UI review │ detected │ detected │ │
+ └─────────────┴──────────────┴──────────────┴──────────────┴────────────────────┘
+```

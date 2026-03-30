@@ -3,22 +3,22 @@ name: design-consultation
 preamble-tier: 3
 version: 1.0.0
 description: |
-  Design consultation: understands your product, researches the landscape, proposes a
-  complete design system (aesthetic, typography, color, layout, spacing, motion), and
-  generates font+color preview pages. Creates DESIGN.md as your project's design source
-  of truth. For existing sites, use /plan-design-review to infer the system instead.
-  Use when asked to "design system", "brand guidelines", or "create DESIGN.md".
-  Proactively suggest when starting a new project's UI with no existing
-  design system or DESIGN.md.
+ Design consultation: understands your product, researches the landscape, proposes a
+ complete design system (aesthetic, typography, color, layout, spacing, motion), and
+ generates font+color preview pages. Creates DESIGN.md as your project's design source
+ of truth. For existing sites, use /plan-design-review to infer the system instead.
+ Use when asked to "design system", "brand guidelines", or "create DESIGN.md".
+ Proactively suggest when starting a new project's UI with no existing
+ design system or DESIGN.md. (OpenGStack)
 allowed-tools:
-  - Bash
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - AskUserQuestion
-  - WebSearch
+ - Bash
+ - Read
+ - Write
+ - Edit
+ - Glob
+ - Grep
+ - AskUserQuestion
+ - WebSearch
 ---
 
 {{PREAMBLE}}
@@ -37,6 +37,7 @@ You are a senior product designer with strong opinions about typography, color, 
 
 ```bash
 ls DESIGN.md design-system.md 2>/dev/null || echo "NO_DESIGN_FILE"
+```
 
 - If a DESIGN.md exists: Read it. Ask the user: "You already have a design system. Want to **update** it, **start fresh**, or **cancel**?"
 - If no DESIGN.md: continue.
@@ -47,14 +48,16 @@ ls DESIGN.md design-system.md 2>/dev/null || echo "NO_DESIGN_FILE"
 cat README.md 2>/dev/null | head -50
 cat package.json 2>/dev/null | head -20
 ls src/ app/ pages/ components/ 2>/dev/null | head -30
+```
 
 Look for office-hours output:
 
 ```bash
-setopt +o nomatch 2>/dev/null || true  # zsh compat
+setopt +o nomatch 2>/dev/null || true # zsh compat
 {{SLUG_EVAL}}
-ls ~/.gstack/projects/$SLUG/*office-hours* 2>/dev/null | head -5
+ls ~/.opengstack/projects/$SLUG/*office-hours* 2>/dev/null | head -5
 ls .context/*office-hours* .context/attachments/*office-hours* 2>/dev/null | head -5
+```
 
 If office-hours output exists, read it — the product context is pre-filled.
 
@@ -66,7 +69,7 @@ If the codebase is empty and purpose is unclear, say: *"I don't have a clear pic
 
 If browse is not available, that's fine — visual research is optional. The skill works without it using WebSearch and your built-in design knowledge.
 
-**Find the gstack designer (optional — enables AI mockup generation):**
+**Find the opengstack designer (optional — enables AI mockup generation):**
 
 {{DESIGN_SETUP}}
 
@@ -109,6 +112,7 @@ If the browse binary is available (`$B` is set), visit the top 3-5 sites in the 
 $B goto "https://example-site.com"
 $B screenshot "/tmp/design-research-site-name.png"
 $B snapshot
+```
 
 For each site, analyze: fonts actually used, color palette, layout approach, spacing density, aesthetic direction. The screenshot gives you the feel; the snapshot gives you structural data.
 
@@ -145,7 +149,7 @@ This is the soul of the skill. Propose EVERYTHING as one coherent package.
 
 **AskUserQuestion Q2 — present the full proposal with SAFE/RISK breakdown:**
 
-
+```
 Based on [product context] and [research findings / my design knowledge]:
 
 AESTHETIC: [direction] — [one-line rationale]
@@ -159,15 +163,16 @@ MOTION: [approach] — [rationale]
 This system is coherent because [explain how choices reinforce each other].
 
 SAFE CHOICES (category baseline — your users expect these):
-  - [2-3 decisions that match category conventions, with rationale for playing safe]
+ - [2-3 decisions that match category conventions, with rationale for playing safe]
 
 RISKS (where your product gets its own face):
-  - [2-3 deliberate departures from convention]
-  - For each risk: what it is, why it works, what you gain, what it costs
+ - [2-3 deliberate departures from convention]
+ - For each risk: what it is, why it works, what you gain, what it costs
 
 The safe choices keep you literate in your category. The risks are where
 your product becomes memorable. Which risks appeal to you? Want to see
 different ones? Or adjust anything else?
+```
 
 The SAFE/RISK breakdown is critical. Design coherence is table stakes — every product in a category can be coherent and still look identical. The real question is: where do you take creative risks? The agent should always propose at least 2 risks, each with a clear rationale for why the risk is worth taking and what the user gives up. Risks might include: an unexpected typeface for the category, a bold accent color nobody else uses, tighter or looser spacing than the norm, a layout approach that breaks from convention, motion choices that add personality.
 
@@ -242,27 +247,30 @@ Each drill-down is one focused AskUserQuestion. After the user decides, re-check
 
 ## Phase 5: Design System Preview (default ON)
 
-This phase generates visual previews of the proposed design system. Two paths depending on whether the gstack designer is available.
+This phase generates visual previews of the proposed design system. Two paths depending on whether the opengstack designer is available.
 
 ### Path A: AI Mockups (if DESIGN_READY)
 
 Generate AI-rendered mockups showing the proposed design system applied to realistic screens for this product. This is far more powerful than an HTML preview — the user sees what their product could actually look like.
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null)"
-_DESIGN_DIR=~/.gstack/projects/$SLUG/designs/design-system-$(date +%Y%m%d)
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null)"
+_DESIGN_DIR=~/.opengstack/projects/$SLUG/designs/design-system-$(date +%Y%m%d)
 mkdir -p "$_DESIGN_DIR"
 echo "DESIGN_DIR: $_DESIGN_DIR"
+```
 
 Construct a design brief from the Phase 3 proposal (aesthetic, colors, typography, spacing, layout) and the product context from Phase 1:
 
 ```bash
 $D variants --brief "<product name: [name]. Product type: [type]. Aesthetic: [direction]. Colors: primary [hex], secondary [hex], neutrals [range]. Typography: display [font], body [font]. Layout: [approach]. Show a realistic [page type] screen with [specific content for this product].>" --count 3 --output-dir "$_DESIGN_DIR/"
+```
 
 Run quality check on each variant:
 
 ```bash
 $D check --image "$_DESIGN_DIR/variant-A.png" --brief "<the original brief>"
+```
 
 Show each variant inline (Read tool on each PNG) for instant preview.
 
@@ -285,11 +293,13 @@ Generate a polished HTML preview page and open it in the user's browser. This pa
 
 ```bash
 PREVIEW_FILE="/tmp/design-consultation-preview-$(date +%s).html"
+```
 
 Write the preview HTML to `$PREVIEW_FILE`, then open it:
 
 ```bash
 open "$PREVIEW_FILE"
+```
 
 ### Preview Page Requirements (Path B only)
 
@@ -299,19 +309,19 @@ The agent writes a **single, self-contained HTML file** (no framework dependenci
 2. **Uses the proposed color palette** throughout — dogfood the design system
 3. **Shows the product name** (not "Lorem Ipsum") as the hero heading
 4. **Font specimen section:**
-   - Each font candidate shown in its proposed role (hero heading, body paragraph, button label, data table row)
-   - Side-by-side comparison if multiple candidates for one role
-   - Real content that matches the product (e.g., civic tech → government data examples)
+ - Each font candidate shown in its proposed role (hero heading, body paragraph, button label, data table row)
+ - Side-by-side comparison if multiple candidates for one role
+ - Real content that matches the product (e.g., civic tech → government data examples)
 5. **Color palette section:**
-   - Swatches with hex values and names
-   - Sample UI components rendered in the palette: buttons (primary, secondary, ghost), cards, form inputs, alerts (success, warning, error, info)
-   - Background/text color combinations showing contrast
+ - Swatches with hex values and names
+ - Sample UI components rendered in the palette: buttons (primary, secondary, ghost), cards, form inputs, alerts (success, warning, error, info)
+ - Background/text color combinations showing contrast
 6. **Realistic product mockups** — this is what makes the preview page powerful. Based on the project type from Phase 1, render 2-3 realistic page layouts using the full design system:
-   - **Dashboard / web app:** sample data table with metrics, sidebar nav, header with user avatar, stat cards
-   - **Marketing site:** hero section with real copy, feature highlights, testimonial block, CTA
-   - **Settings / admin:** form with labeled inputs, toggle switches, dropdowns, save button
-   - **Auth / onboarding:** login form with social buttons, branding, input validation states
-   - Use the product name, realistic content for the domain, and the proposed spacing/layout/border-radius. The user should see their product (roughly) before writing any code.
+ - **Dashboard / web app:** sample data table with metrics, sidebar nav, header with user avatar, stat cards
+ - **Marketing site:** hero section with real copy, feature highlights, testimonial block, CTA
+ - **Settings / admin:** form with labeled inputs, toggle switches, dropdowns, save button
+ - **Auth / onboarding:** login form with social buttons, branding, input validation states
+ - Use the product name, realistic content for the domain, and the proposed spacing/layout/border-radius. The user should see their product (roughly) before writing any code.
 7. **Light/dark mode toggle** using CSS custom properties and a JS toggle button
 8. **Clean, professional layout** — the preview page IS a taste signal for the skill
 9. **Responsive** — looks good on any screen width
@@ -384,6 +394,7 @@ If `$D extract` was used in Phase 5 (Path A), use the extracted tokens as the pr
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | [today] | Initial design system created | Created by /design-consultation based on [product context / research] |
+```
 
 **Update CLAUDE.md** (or create it if it doesn't exist) — append this section:
 
@@ -393,6 +404,7 @@ Always read DESIGN.md before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.
 Do not deviate without explicit user approval.
 In QA mode, flag any code that doesn't match DESIGN.md.
+```
 
 **AskUserQuestion Q-final — show summary and confirm:**
 
@@ -400,6 +412,10 @@ List all decisions. Flag any that used agent defaults without explicit user conf
 - A) Ship it — write DESIGN.md and CLAUDE.md
 - B) I want to change something (specify what)
 - C) Start over
+
+After shipping DESIGN.md, if the session produced screen-level mockups or page layouts
+(not just system-level tokens), suggest:
+"Want to see this design system as working Pretext-native HTML? Run /design-html."
 
 ---
 

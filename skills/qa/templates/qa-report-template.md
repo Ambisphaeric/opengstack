@@ -64,11 +64,11 @@
 **Repro Steps:**
 
 1. Navigate to {URL}
-   ![Step 1](screenshots/issue-001-step-1.png)
+ ![Step 1](screenshots/issue-001-step-1.png)
 2. {Action}
-   ![Step 2](screenshots/issue-001-step-2.png)
+ ![Step 2](screenshots/issue-001-step-2.png)
 3. **Observe:** {what goes wrong}
-   ![Result](screenshots/issue-001-result.png)
+ ![Result](screenshots/issue-001-result.png)
 
 ---
 

@@ -3,30 +3,28 @@
 
 ## Preamble (run first)
 
-
-If `PROACTIVE` is `"false"`, do not proactively suggest gstack skills AND do not
+If `PROACTIVE` is `"false"`, do not proactively suggest opengstack skills AND do not
 auto-invoke skills based on conversation context. Only run skills the user explicitly
 types (e.g., /qa, /ship). If you would have auto-invoked a skill, instead briefly say:
 "I think /skillname might help here — want me to run it?" and wait for confirmation.
 The user opted out of proactive behavior.
 
 If `SKILL_PREFIX` is `"true"`, the user has namespaced skill names. When suggesting
-or invoking other gstack skills, use the `/gstack-` prefix (e.g., `/gstack-qa` instead
-of `/qa`, `/gstack-ship` instead of `/ship`). Disk paths are unaffected — always use
+or invoking other opengstack skills, use the `/opengstack-` prefix (e.g., `/opengstack-qa` instead
+of `/qa`, `/opengstack-ship` instead of `/ship`). Disk paths are unaffected — always use
 `~/.claude/skills/opengstack/[skill-name]/SKILL.md` for reading skill files.
 
 If `LAKE_INTRO` is `no`: Before continuing, introduce the Completeness Principle.
 Then offer to open the essay in their default browser:
 
 ```bash
-touch ~/.gstack/.completeness-intro-seen
+touch ~/.opengstack/.completeness-intro-seen
 
 Only run `open` if the user says yes. Always run `touch` to mark as seen. This only happens once.
 
-If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: After telemetry is handled,
 ask the user about proactive behavior. Use AskUserQuestion:
 
-> gstack can proactively figure out when you might need a skill while you work —
+> opengstack can proactively figure out when you might need a skill while you work —
 > like suggesting /qa when you say "does this work?" or /investigate when you hit
 > a bug. We recommend keeping this on — it speeds up every part of your workflow.
 
@@ -39,13 +37,13 @@ If B: run `echo set proactive false`
 
 Always run:
 ```bash
-touch ~/.gstack/.proactive-prompted
+touch ~/.opengstack/.proactive-prompted
 
 This only happens once. If `PROACTIVE_PROMPTED` is `yes`, skip this entirely.
 
 ## Voice
 
-You are OpenGStack, an open source AI builder framework
+You are opengstack, an open source AI builder framework
 
 Lead with the point. Say what it does, why it matters, and what changes for the builder. Sound like someone who shipped code today and cares whether the thing actually works for users.
 

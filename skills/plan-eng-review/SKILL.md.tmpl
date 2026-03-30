@@ -3,21 +3,21 @@ name: plan-eng-review
 preamble-tier: 3
 version: 1.0.0
 description: |
-  Eng manager-mode plan review. Lock in the execution plan — architecture,
-  data flow, diagrams, edge cases, test coverage, performance. Walks through
-  issues interactively with opinionated recommendations. Use when asked to
-  "review the architecture", "engineering review", or "lock in the plan".
-  Proactively suggest when the user has a plan or design doc and is about to
-  start coding — to catch architecture issues before implementation.
+ Eng manager-mode plan review. Lock in the execution plan — architecture,
+ data flow, diagrams, edge cases, test coverage, performance. Walks through
+ issues interactively with opinionated recommendations. Use when asked to
+ "review the architecture", "engineering review", or "lock in the plan".
+ Proactively suggest when the user has a plan or design doc and is about to
+ start coding — to catch architecture issues before implementation. (OpenGStack)
 benefits-from: [office-hours]
 allowed-tools:
-  - Read
-  - Write
-  - Grep
-  - Glob
-  - AskUserQuestion
-  - Bash
-  - WebSearch
+ - Read
+ - Write
+ - Grep
+ - Glob
+ - AskUserQuestion
+ - Bash
+ - WebSearch
 ---
 
 {{PREAMBLE}}
@@ -27,7 +27,7 @@ allowed-tools:
 Review this plan thoroughly before making any code changes. For every issue or recommendation, explain the concrete tradeoffs, give me an opinionated recommendation, and ask for my input before assuming a direction.
 
 ## Priority hierarchy
-If you are running low on context or the user asks you to compress: Step 0 > Test diagram > Opinionated recommendations > Everything else. Never skip Step 0 or the test diagram.
+If the user asks you to compress or the system triggers context compaction: Step 0 > Test diagram > Opinionated recommendations > Everything else. Never skip Step 0 or the test diagram. Do not preemptively warn about context limits -- the system handles compaction automatically.
 
 ## My engineering preferences (use these to guide your recommendations):
 * DRY is important—flag repetition aggressively.
@@ -68,13 +68,13 @@ When evaluating architecture, think "boring by default." When reviewing tests, t
 
 ### Design Doc Check
 ```bash
-setopt +o nomatch 2>/dev/null || true  # zsh compat
+setopt +o nomatch 2>/dev/null || true # zsh compat
 SLUG=$(~/.claude/skills/opengstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
-DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
-[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
+DESIGN=$(ls -t ~/.opengstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
+[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.opengstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
 [ -n "$DESIGN" ] && echo "Design doc found: $DESIGN" || echo "No design doc found"
-
+```
 If a design doc exists, read it. Use it as the source of truth for the problem statement, constraints, and chosen approach. If it has a `Supersedes:` field, note that this is a revised design — check the prior version for context on what changed and why.
 
 {{BENEFITS_FROM}}
@@ -85,22 +85,22 @@ Before reviewing anything, answer these questions:
 2. **What is the minimum set of changes that achieves the stated goal?** Flag any work that could be deferred without blocking the core objective. Be ruthless about scope creep.
 3. **Complexity check:** If the plan touches more than 8 files or introduces more than 2 new classes/services, treat that as a smell and challenge whether the same goal can be achieved with fewer moving parts.
 4. **Search check:** For each architectural pattern, infrastructure component, or concurrency approach the plan introduces:
-   - Does the runtime/framework have a built-in? Search: "{framework} {pattern} built-in"
-   - Is the chosen approach current best practice? Search: "{pattern} best practice {current year}"
-   - Are there known footguns? Search: "{framework} {pattern} pitfalls"
+ - Does the runtime/framework have a built-in? Search: "{framework} {pattern} built-in"
+ - Is the chosen approach current best practice? Search: "{pattern} best practice {current year}"
+ - Are there known footguns? Search: "{framework} {pattern} pitfalls"
 
-   If WebSearch is unavailable, skip this check and note: "Search unavailable — proceeding with in-distribution knowledge only."
+ If WebSearch is unavailable, skip this check and note: "Search unavailable — proceeding with in-distribution knowledge only."
 
-   If the plan rolls a custom solution where a built-in exists, flag it as a scope reduction opportunity. Annotate recommendations with **[Layer 1]**, **[Layer 2]**, **[Layer 3]**, or **[EUREKA]** (see preamble's Search Before Building section). If you find a eureka moment — a reason the standard approach is wrong for this case — present it as an architectural insight.
+ If the plan rolls a custom solution where a built-in exists, flag it as a scope reduction opportunity. Annotate recommendations with **[Layer 1]**, **[Layer 2]**, **[Layer 3]**, or **[EUREKA]** (see preamble's Search Before Building section). If you find a eureka moment — a reason the standard approach is wrong for this case — present it as an architectural insight.
 5. **TODOS cross-reference:** Read `TODOS.md` if it exists. Are any deferred items blocking this plan? Can any deferred items be bundled into this PR without expanding scope? Does this plan create new work that should be captured as a TODO?
 
-5. **Completeness check:** Is the plan doing the complete version or a shortcut? With AI-assisted coding, the cost of completeness (100% test coverage, full edge case handling, complete error paths) is 10-100x cheaper than with a human team. If the plan proposes a shortcut that saves human-hours but only saves minutes with CC+gstack, recommend the complete version. Boil the lake.
+5. **Completeness check:** Is the plan doing the complete version or a shortcut? With AI-assisted coding, the cost of completeness (100% test coverage, full edge case handling, complete error paths) is 10-100x cheaper than with a human team. If the plan proposes a shortcut that saves human-hours but only saves minutes with CC+OpenGStack, recommend the complete version. Boil the lake.
 
 6. **Distribution check:** If the plan introduces a new artifact type (CLI binary, library package, container image, mobile app), does it include the build/publish pipeline? Code without distribution is code nobody can use. Check:
-   - Is there a CI/CD workflow for building and publishing the artifact?
-   - Are target platforms defined (linux/darwin/windows, amd64/arm64)?
-   - How will users download or install it (GitHub Releases, package manager, container registry)?
-   If the plan defers distribution, flag it explicitly in the "NOT in scope" section — don't let it silently drop.
+ - Is there a CI/CD workflow for building and publishing the artifact?
+ - Are target platforms defined (linux/darwin/windows, amd64/arm64)?
+ - How will users download or install it (GitHub Releases, package manager, container registry)?
+ If the plan defers distribution, flag it explicitly in the "NOT in scope" section — don't let it silently drop.
 
 If the complexity check triggers (8+ files or 2+ new classes/services), proactively recommend scope reduction via AskUserQuestion — explain what's overbuilt, propose a minimal version that achieves the core goal, and ask whether to reduce or proceed as-is. If the complexity check does not trigger, present your Step 0 findings and proceed directly to Section 1.
 
@@ -109,6 +109,8 @@ Always work through the full interactive review: one section at a time (Architec
 **Critical: Once the user accepts or rejects a scope reduction recommendation, commit fully.** Do not re-argue for smaller scope during later review sections. Do not silently reduce scope or skip planned components.
 
 ## Review Sections (after scope is agreed)
+
+{{LEARNINGS_SEARCH}}
 
 ### 1. Architecture review
 Evaluate:
@@ -122,6 +124,8 @@ Evaluate:
 * **Distribution architecture:** If this introduces a new artifact (binary, package, container), how does it get built, published, and updated? Is the CI/CD pipeline part of the plan or deferred?
 
 **STOP.** For each issue found in this section, call AskUserQuestion individually. One issue per call. Present options, state your recommendation, explain WHY. Do NOT batch multiple issues into one AskUserQuestion. Only proceed to the next section after ALL issues in this section are resolved.
+
+{{CONFIDENCE_CALIBRATION}}
 
 ### 2. Code quality review
 Evaluate:
@@ -222,9 +226,9 @@ Analyze the plan's implementation steps for parallel execution opportunities. Th
 Work at the module/directory level, not file level. Plans describe intent ("add API endpoints"), not specific files. Module-level ("controllers/, models/") is reliable; file-level is guesswork.
 
 2. **Parallel lanes** — group steps into lanes:
-   - Steps with no shared modules and no dependency go in separate lanes (parallel)
-   - Steps sharing a module directory go in the same lane (sequential)
-   - Steps depending on other steps go in later lanes
+ - Steps with no shared modules and no dependency go in separate lanes (parallel)
+ - Steps sharing a module directory go in the same lane (sequential)
+ - Steps depending on other steps go in later lanes
 
 Format: `Lane A: step1 → step2 (sequential, shared models/)` / `Lane B: step3 (independent)`
 
@@ -261,13 +265,13 @@ Check the git log for this branch. If there are prior commits suggesting a previ
 After producing the Completion Summary above, persist the review result.
 
 **PLAN MODE EXCEPTION — ALWAYS RUN:** This command writes review metadata to
-`~/.gstack/` (user config directory, not project files). The skill preamble
-already writes to `~/.gstack/sessions/` and `~/.gstack/analytics/` — this is
+`~/.opengstack/` (user config directory, not project files). The skill preamble
 the same pattern. The review dashboard depends on this data. Skipping this
 command breaks the review readiness dashboard in /ship.
 
 ```bash
-~/.claude/skills/opengstack/bin/gstack-review-log '{"skill":"plan-eng-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"issues_found":N,"mode":"MODE","commit":"COMMIT"}'
+~/.claude/skills/opengstack/bin/opengstack-review-log '{"skill":"plan-eng-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"issues_found":N,"mode":"MODE","commit":"COMMIT"}'
+```
 
 Substitute values from the Completion Summary:
 - **TIMESTAMP**: current ISO 8601 datetime

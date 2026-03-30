@@ -3,20 +3,20 @@ name: plan-design-review
 preamble-tier: 3
 version: 2.0.0
 description: |
-  Designer's eye plan review — interactive, like CEO and Eng review.
-  Rates each design dimension 0-10, explains what would make it a 10,
-  then fixes the plan to get there. Works in plan mode. For live site
-  visual audits, use /design-review. Use when asked to "review the design plan"
-  or "design critique".
-  Proactively suggest when the user has a plan with UI/UX components that
-  should be reviewed before implementation.
+ Designer's eye plan review — interactive, like CEO and Eng review.
+ Rates each design dimension 0-10, explains what would make it a 10,
+ then fixes the plan to get there. Works in plan mode. For live site
+ visual audits, use /design-review. Use when asked to "review the design plan"
+ or "design critique".
+ Proactively suggest when the user has a plan with UI/UX components that
+ should be reviewed before implementation. (OpenGStack)
 allowed-tools:
-  - Read
-  - Edit
-  - Grep
-  - Glob
-  - Bash
-  - AskUserQuestion
+ - Read
+ - Edit
+ - Grep
+ - Glob
+ - Bash
+ - AskUserQuestion
 ---
 
 {{PREAMBLE}}
@@ -41,9 +41,9 @@ choices.
 Do NOT make any code changes. Do NOT start implementation. Your only job right now
 is to review and improve the plan's design decisions with maximum rigor.
 
-### The gstack designer — YOUR PRIMARY TOOL
+### The opengstack designer — YOUR PRIMARY TOOL
 
-You have the **gstack designer**, an AI mockup generator that creates real visual mockups
+You have the **opengstack designer**, an AI mockup generator that creates real visual mockups
 from design briefs. This is your signature capability. Use it by default, not as an
 afterthought.
 
@@ -107,6 +107,7 @@ Before reviewing the plan, gather context:
 ```bash
 git log --oneline -15
 git diff <base> --stat
+```
 
 Then read:
 - The plan file (current plan or branch diff)
@@ -154,10 +155,10 @@ AskUserQuestion: "I've rated this plan {N}/10 on design completeness. The bigges
 ## Step 0.5: Visual Mockups (DEFAULT when DESIGN_READY)
 
 If the plan involves any UI — screens, pages, components, visual changes — AND the
-gstack designer is available (`DESIGN_READY` was printed during setup), **generate
+opengstack designer is available (`DESIGN_READY` was printed during setup), **generate
 mockups immediately.** Do not ask permission. This is the default behavior.
 
-Tell the user: "Generating visual mockups with the gstack designer. This is how we
+Tell the user: "Generating visual mockups with the opengstack designer. This is how we
 review design — real visuals, not text descriptions."
 
 The ONLY time you skip mockups is when:
@@ -167,23 +168,24 @@ The ONLY time you skip mockups is when:
 If the user explicitly says "skip mockups" or "text only", respect that. Otherwise, generate.
 
 **PLAN MODE EXCEPTION — ALWAYS RUN:** These commands write design artifacts to
-`~/.gstack/projects/$SLUG/designs/` (user config directory, not project files).
-Mockups are design artifacts that inform the plan, not code changes. The gstack
+`~/.opengstack/projects/$SLUG/designs/` (user config directory, not project files).
+Mockups are design artifacts that inform the plan, not code changes. The opengstack
 designer outputs PNGs and HTML comparison boards for human review during the
 planning phase. Generating mockups during planning is the whole point.
 
 Allowed commands under this exception:
-- `mkdir -p ~/.gstack/projects/$SLUG/designs/...`
+- `mkdir -p ~/.opengstack/projects/$SLUG/designs/...`
 - `$D generate`, `$D variants`, `$D compare`, `$D iterate`, `$D evolve`, `$D check`
 - `open` (fallback for viewing boards when `$B` is not available)
 
 First, set up the output directory. Name it after the screen/feature being designed and today's date:
 
 ```bash
-eval "$(~/.claude/skills/opengstack/bin/gstack-slug 2>/dev/null)"
-_DESIGN_DIR=~/.gstack/projects/$SLUG/designs/<screen-name>-$(date +%Y%m%d)
+eval "$(~/.claude/skills/opengstack/bin/opengstack-slug 2>/dev/null)"
+_DESIGN_DIR=~/.opengstack/projects/$SLUG/designs/<screen-name>-$(date +%Y%m%d)
 mkdir -p "$_DESIGN_DIR"
 echo "DESIGN_DIR: $_DESIGN_DIR"
+```
 
 Replace `<screen-name>` with a descriptive kebab-case name (e.g., `homepage-variants`, `settings-page`, `onboarding-flow`).
 
@@ -196,19 +198,20 @@ For each UI screen/section in scope, construct a design brief from the plan's de
 
 ```bash
 $D variants --brief "<description assembled from plan + DESIGN.md constraints>" --count 3 --output-dir "$_DESIGN_DIR/"
+```
 
 After generation, run a cross-model quality check on each variant:
 
 ```bash
 $D check --image "$_DESIGN_DIR/variant-A.png" --brief "<the original brief>"
+```
 
 Flag any variants that fail the quality check. Offer to regenerate failures.
 
-Show each variant inline (Read tool on each PNG) so the user sees them immediately.
-
-Tell the user: "I've generated design directions. Take a look at the variants above,
-then use the comparison board that just opened in your browser to pick your favorite,
-rate the others, remix elements, and click Submit when you're done."
+**Do NOT show variants inline via Read tool and ask for preferences.** Proceed
+directly to the Comparison Board + Feedback Loop section below. The comparison board
+IS the chooser — it has rating controls, comments, remix/regenerate, and structured
+feedback output. Showing mockups inline is a degraded experience.
 
 {{DESIGN_SHOTGUN_LOOP}}
 
@@ -218,7 +221,7 @@ Note which direction was approved. This becomes the visual reference for all sub
 
 **Multiple variants/screens:** If the user asked for multiple variants (e.g., "5 versions of the homepage"), generate ALL as separate variant sets with their own comparison boards. Each screen/variant set gets its own subdirectory under `designs/`. Complete all mockup generation and user selection before starting review passes.
 
-**If `DESIGN_NOT_AVAILABLE`:** Tell the user: "The gstack designer isn't set up yet. Run `$D setup` to enable visual mockups. Proceeding with text-only review, but you're missing the best part." Then proceed to review passes with text-based review.
+**If `DESIGN_NOT_AVAILABLE`:** Tell the user: "The opengstack designer isn't set up yet. Run `$D setup` to enable visual mockups. Proceeding with text-only review, but you're missing the best part." Then proceed to review passes with text-based review.
 
 {{DESIGN_OUTSIDE_VOICES}}
 
@@ -242,7 +245,8 @@ If `DESIGN_READY` was printed during setup AND a dimension rates below 7/10,
 offer to generate a visual mockup showing what the improved version would look like:
 
 ```bash
-$D generate --brief "<description of what 10/10 looks like for this dimension>" --output /tmp/gstack-ideal-<dimension>.png
+$D generate --brief "<description of what 10/10 looks like for this dimension>" --output /tmp/opengstack-ideal-<dimension>.png
+```
 
 Show the mockup to the user via the Read tool. This makes the gap between
 "what the plan describes" and "what it should look like" visceral, not abstract.
@@ -260,11 +264,11 @@ FIX TO 10: Add information hierarchy to the plan. Include ASCII diagram of scree
 ### Pass 2: Interaction State Coverage
 Rate 0-10: Does the plan specify loading, empty, error, success, partial states?
 FIX TO 10: Add interaction state table to the plan:
-
-  FEATURE              | LOADING | EMPTY | ERROR | SUCCESS | PARTIAL
-  ---------------------|---------|-------|-------|---------|--------
-  [each UI feature]    | [spec]  | [spec]| [spec]| [spec]  | [spec]
-
+```
+ FEATURE | LOADING | EMPTY | ERROR | SUCCESS | PARTIAL
+ ---------------------|---------|-------|-------|---------|--------
+ [each UI feature] | [spec] | [spec]| [spec]| [spec] | [spec]
+```
 For each state: describe what the user SEES, not backend behavior.
 Empty states are features — specify warmth, primary action, context.
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
@@ -272,12 +276,12 @@ Empty states are features — specify warmth, primary action, context.
 ### Pass 3: User Journey & Emotional Arc
 Rate 0-10: Does the plan consider the user's emotional experience?
 FIX TO 10: Add user journey storyboard:
-
-  STEP | USER DOES        | USER FEELS      | PLAN SPECIFIES?
-  -----|------------------|-----------------|----------------
-  1    | Lands on page    | [what emotion?] | [what supports it?]
-  ...
-
+```
+ STEP | USER DOES | USER FEELS | PLAN SPECIFIES?
+ -----|------------------|-----------------|----------------
+ 1 | Lands on page | [what emotion?] | [what supports it?]
+ ...
+```
 Apply time-horizon design: 5-sec visceral, 5-min behavioral, 5-year reflective.
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
 
@@ -306,13 +310,13 @@ FIX TO 10: Add responsive specs per viewport — not "stacked on mobile" but int
 
 ### Pass 7: Unresolved Design Decisions
 Surface ambiguities that will haunt implementation:
-
-  DECISION NEEDED              | IF DEFERRED, WHAT HAPPENS
-  -----------------------------|---------------------------
-  What does empty state look like? | Engineer ships "No items found."
-  Mobile nav pattern?          | Desktop nav hides behind hamburger
-  ...
-
+```
+ DECISION NEEDED | IF DEFERRED, WHAT HAPPENS
+ -----------------------------|---------------------------
+ What does empty state look like? | Engineer ships "No items found."
+ Mobile nav pattern? | Desktop nav hides behind hamburger
+ ...
+```
 If visual mockups were generated in Step 0.5, reference them as evidence when surfacing unresolved decisions. A mockup makes decisions concrete — e.g., "Your approved mockup shows a sidebar nav, but the plan doesn't specify mobile behavior. What happens to this sidebar on 375px?"
 Each decision = one AskUserQuestion with recommendation + WHY + alternatives. Edit the plan with each decision as it's made.
 
@@ -332,6 +336,7 @@ Follow the AskUserQuestion format from the Preamble above. Additional rules for 
 * **Map to Design Principles above.** One sentence connecting your recommendation to a specific principle.
 * Label with issue NUMBER + option LETTER (e.g., "3A", "3B").
 * **Escape hatch:** If a section has no issues, say so and move on. If a gap has an obvious fix, state what you'll add and move on — don't waste a question on it. Only use AskUserQuestion when there is a genuine design choice with meaningful tradeoffs.
+* **NEVER use AskUserQuestion to ask which variant the user prefers.** Always create a comparison board first (`$D compare --serve`) and open it in the browser. The board has rating controls, comments, remix/regenerate buttons, and structured feedback output. Use AskUserQuestion ONLY to notify the user the board is open and wait for them to finish — not to present variants inline and ask "which do you prefer?" That is a degraded experience.
 
 ## Required Outputs
 
@@ -355,28 +360,29 @@ For design debt: missing a11y, unresolved responsive behavior, deferred empty st
 Then present options: **A)** Add to TODOS.md **B)** Skip — not valuable enough **C)** Build it now in this PR instead of deferring.
 
 ### Completion Summary
-
-  +====================================================================+
-  |         DESIGN PLAN REVIEW — COMPLETION SUMMARY                    |
-  +====================================================================+
-  | System Audit         | [DESIGN.md status, UI scope]                |
-  | Step 0               | [initial rating, focus areas]               |
-  | Pass 1  (Info Arch)  | ___/10 → ___/10 after fixes                |
-  | Pass 2  (States)     | ___/10 → ___/10 after fixes                |
-  | Pass 3  (Journey)    | ___/10 → ___/10 after fixes                |
-  | Pass 4  (AI Slop)    | ___/10 → ___/10 after fixes                |
-  | Pass 5  (Design Sys) | ___/10 → ___/10 after fixes                |
-  | Pass 6  (Responsive) | ___/10 → ___/10 after fixes                |
-  | Pass 7  (Decisions)  | ___ resolved, ___ deferred                 |
-  +--------------------------------------------------------------------+
-  | NOT in scope         | written (___ items)                         |
-  | What already exists  | written                                     |
-  | TODOS.md updates     | ___ items proposed                          |
-  | Approved Mockups     | ___ generated, ___ approved                  |
-  | Decisions made       | ___ added to plan                           |
-  | Decisions deferred   | ___ (listed below)                          |
-  | Overall design score | ___/10 → ___/10                             |
-  +====================================================================+
+```
+ +====================================================================+
+ | DESIGN PLAN REVIEW — COMPLETION SUMMARY |
+ +====================================================================+
+ | System Audit | [DESIGN.md status, UI scope] |
+ | Step 0 | [initial rating, focus areas] |
+ | Pass 1 (Info Arch) | ___/10 → ___/10 after fixes |
+ | Pass 2 (States) | ___/10 → ___/10 after fixes |
+ | Pass 3 (Journey) | ___/10 → ___/10 after fixes |
+ | Pass 4 (AI Slop) | ___/10 → ___/10 after fixes |
+ | Pass 5 (Design Sys) | ___/10 → ___/10 after fixes |
+ | Pass 6 (Responsive) | ___/10 → ___/10 after fixes |
+ | Pass 7 (Decisions) | ___ resolved, ___ deferred |
+ +--------------------------------------------------------------------+
+ | NOT in scope | written (___ items) |
+ | What already exists | written |
+ | TODOS.md updates | ___ items proposed |
+ | Approved Mockups | ___ generated, ___ approved |
+ | Decisions made | ___ added to plan |
+ | Decisions deferred | ___ (listed below) |
+ | Overall design score | ___/10 → ___/10 |
+ +====================================================================+
+```
 
 If all passes 8+: "Plan is design-complete. Run /design-review after implementation for visual QA."
 If any below 8: note what's unresolved and why (user chose to defer).
@@ -388,12 +394,13 @@ If any AskUserQuestion goes unanswered, note it here. Never silently default to 
 
 If visual mockups were generated during this review, add to the plan file:
 
-
+```
 ## Approved Mockups
 
 | Screen/Section | Mockup Path | Direction | Notes |
 |----------------|-------------|-----------|-------|
-| [screen name]  | ~/.gstack/projects/$SLUG/designs/[folder]/[filename].png | [brief description] | [constraints from review] |
+| [screen name] | ~/.opengstack/projects/$SLUG/designs/[folder]/[filename].png | [brief description] | [constraints from review] |
+```
 
 Include the full path to each approved mockup (the variant the user chose), a one-line description of the direction, and any constraints. The implementer reads this to know exactly which visual to build from. These persist across conversations and workspaces. If no mockups were generated, omit this section.
 
@@ -402,13 +409,13 @@ Include the full path to each approved mockup (the variant the user chose), a on
 After producing the Completion Summary above, persist the review result.
 
 **PLAN MODE EXCEPTION — ALWAYS RUN:** This command writes review metadata to
-`~/.gstack/` (user config directory, not project files). The skill preamble
-already writes to `~/.gstack/sessions/` and `~/.gstack/analytics/` — this is
+`~/.opengstack/` (user config directory, not project files). The skill preamble
 the same pattern. The review dashboard depends on this data. Skipping this
 command breaks the review readiness dashboard in /ship.
 
 ```bash
-~/.claude/skills/opengstack/bin/gstack-review-log '{"skill":"plan-design-review","timestamp":"TIMESTAMP","status":"STATUS","initial_score":N,"overall_score":N,"unresolved":N,"decisions_made":N,"commit":"COMMIT"}'
+~/.claude/skills/opengstack/bin/opengstack-review-log '{"skill":"plan-design-review","timestamp":"TIMESTAMP","status":"STATUS","initial_score":N,"overall_score":N,"unresolved":N,"decisions_made":N,"commit":"COMMIT"}'
+```
 
 Substitute values from the Completion Summary:
 - **TIMESTAMP**: current ISO 8601 datetime
@@ -433,10 +440,18 @@ After displaying the Review Readiness Dashboard, recommend the next review(s) ba
 
 **If both are needed, recommend eng review first** (required gate).
 
+**Recommend design exploration skills when appropriate** — /design-shotgun and /design-html
+produce design artifacts (mockups, HTML previews), not application code. They belong in
+plan mode alongside reviews. If this design review found visual issues that would benefit
+from exploring new directions, recommend /design-shotgun. If approved mockups exist and
+need to be turned into working HTML, recommend /design-html.
+
 Use AskUserQuestion to present the next step. Include only applicable options:
 - **A)** Run /plan-eng-review next (required gate)
 - **B)** Run /plan-ceo-review (only if fundamental product gaps found)
-- **C)** Skip — I'll handle reviews manually
+- **C)** Run /design-shotgun — explore visual design variants for issues found
+- **D)** Run /design-html — generate Pretext-native HTML from approved mockups
+- **E)** Skip — I'll handle next steps manually
 
 ## Formatting Rules
 * NUMBER issues (1, 2, 3...) and LETTERS for options (A, B, C...).
