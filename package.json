@@ -1,6 +1,6 @@
 {
  "name": "opengstack",
- "version": "0.14.2",
+ "version": "0.14.3",
  "private": false,
  "description": "AI Engineering Workflow - Native slash commands for OpenCode. Open source AI engineering workflow. No telemetry. No tracking.",
  "keywords": [
